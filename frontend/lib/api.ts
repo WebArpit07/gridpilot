@@ -1,6 +1,7 @@
 /**
  * GridPilot API Client Layer
- * Handles typed interactions with the FastAPI backend on http://127.0.0.1:8000
+ * Handles typed interactions with the FastAPI backend on http://127.0.0.1:8000 / http://localhost:8000
+ * with automatic fallback and transparent Next.js rewrite proxy support.
  */
 
 import {
@@ -10,28 +11,72 @@ import {
   ScenarioSummary,
 } from "./types";
 
-const API_BASE_URL =
+const PRIMARY_URL =
   process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") || "http://127.0.0.1:8000";
+const SECONDARY_URL = "http://localhost:8000";
+const PROXY_PREFIX = "/api/backend";
+
+/**
+ * Robust fetch helper that tries PRIMARY_URL, then SECONDARY_URL, then PROXY_PREFIX.
+ */
+async function fetchWithFallback(
+  path: string,
+  options?: RequestInit
+): Promise<Response> {
+  const isClient = typeof window !== "undefined";
+  const candidates: string[] = [
+    `${PRIMARY_URL}${path}`,
+    `${SECONDARY_URL}${path}`,
+  ];
+
+  if (isClient && path.startsWith("/api/")) {
+    candidates.push(path.replace("/api", PROXY_PREFIX));
+  } else if (isClient && path === "/health") {
+    candidates.push("/backend-health");
+  }
+
+  let lastError: Error | null = null;
+  for (const url of candidates) {
+    try {
+      const res = await fetch(url, {
+        ...options,
+        cache: "no-store",
+      });
+      if (res.ok) {
+        return res;
+      }
+      // If server returned 4xx or 5xx, still return response so caller can inspect error status
+      if (res.status >= 400 && res.status < 500) {
+        return res;
+      }
+    } catch (err) {
+      lastError = err instanceof Error ? err : new Error(String(err));
+      // continue to next candidate
+    }
+  }
+
+  throw lastError || new Error(`Failed to connect to backend service for path ${path}`);
+}
 
 /**
  * Basic health check endpoint returning service operational status.
  */
-export async function checkHealth(): Promise<{ status: string; timestamp: number }> {
+export async function checkHealth(): Promise<{ status: string; timestamp: number; url: string }> {
   try {
-    const res = await fetch(`${API_BASE_URL}/health`, {
+    const res = await fetchWithFallback("/health", {
       method: "GET",
       headers: { "Content-Type": "application/json" },
-      // short timeout cache control
-      cache: "no-store",
     });
     if (!res.ok) {
-      throw new Error(`Health check returned status ${res.status}`);
+      throw new Error(`Health check returned HTTP ${res.status}`);
     }
     const data = await res.json();
-    return { status: data.status ?? "ok", timestamp: Date.now() };
+    return { status: data.status ?? "ok", timestamp: Date.now(), url: PRIMARY_URL };
   } catch (err) {
     throw new Error(
-      `Unable to connect to backend on ${API_BASE_URL}: ${err instanceof Error ? err.message : String(err)}`
+      `Unable to connect to backend on ${PRIMARY_URL} or ${SECONDARY_URL}: ${
+        err instanceof Error ? err.message : String(err)
+      }`
     );
   }
 }
@@ -40,10 +85,9 @@ export async function checkHealth(): Promise<{ status: string; timestamp: number
  * Returns the names and descriptions of predefined benchmark scenarios (A, B, C, D).
  */
 export async function fetchScenarios(): Promise<ScenarioSummary[]> {
-  const res = await fetch(`${API_BASE_URL}/api/scenarios`, {
+  const res = await fetchWithFallback("/api/scenarios", {
     method: "GET",
     headers: { "Content-Type": "application/json" },
-    cache: "no-store",
   });
   if (!res.ok) {
     throw new Error(`Failed to fetch scenarios: HTTP ${res.status}`);
@@ -56,10 +100,9 @@ export async function fetchScenarios(): Promise<ScenarioSummary[]> {
  */
 export async function fetchScenarioDetail(name: string): Promise<ScenarioDetailResponse> {
   const encodedName = encodeURIComponent(name);
-  const res = await fetch(`${API_BASE_URL}/api/scenarios/${encodedName}`, {
+  const res = await fetchWithFallback(`/api/scenarios/${encodedName}`, {
     method: "GET",
     headers: { "Content-Type": "application/json" },
-    cache: "no-store",
   });
   if (!res.ok) {
     throw new Error(`Failed to fetch scenario details for "${name}": HTTP ${res.status}`);
@@ -73,11 +116,10 @@ export async function fetchScenarioDetail(name: string): Promise<ScenarioDetailR
 export async function runComparison(
   request: ScenarioRunRequest
 ): Promise<ComparisonResponse> {
-  const res = await fetch(`${API_BASE_URL}/api/simulations/compare`, {
+  const res = await fetchWithFallback("/api/simulations/compare", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(request),
-    cache: "no-store",
   });
   if (!res.ok) {
     const errText = await res.text().catch(() => "");
