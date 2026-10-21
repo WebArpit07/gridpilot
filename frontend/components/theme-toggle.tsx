@@ -15,7 +15,7 @@ export function ThemeToggle() {
 
   if (!mounted) {
     return (
-      <div className="w-9 h-9 rounded-xl border border-zinc-200/50 dark:border-white/10 bg-white/20 dark:bg-white/5 backdrop-blur-md" />
+      <div className="w-9 h-9 rounded-2xl border border-purple-500/20 bg-purple-950/20 backdrop-blur-md" />
     );
   }
 
@@ -27,7 +27,7 @@ export function ThemeToggle() {
       whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.95 }}
       onClick={() => setTheme(isDark ? "light" : "dark")}
-      className="relative w-9 h-9 flex items-center justify-center rounded-xl border border-zinc-200/60 dark:border-white/10 bg-white/40 dark:bg-white/5 hover:bg-white/60 dark:hover:bg-white/10 backdrop-blur-md text-zinc-700 dark:text-zinc-200 shadow-sm transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/50"
+      className="relative w-9 h-9 flex items-center justify-center rounded-2xl border border-purple-500/25 bg-[#140a22]/80 hover:bg-purple-950/50 backdrop-blur-xl text-purple-200 shadow-sm transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-fuchsia-500/50"
       aria-label="Toggle theme"
       title={`Switch to ${isDark ? "Light" : "Dark"} mode`}
     >
@@ -40,9 +40,9 @@ export function ThemeToggle() {
         className="flex items-center justify-center"
       >
         {isDark ? (
-          <Moon className="w-4 h-4 text-cyan-400" />
+          <Moon className="w-4 h-4 text-fuchsia-400 drop-shadow-[0_0_6px_rgba(236,72,153,0.8)]" />
         ) : (
-          <Sun className="w-4 h-4 text-amber-500" />
+          <Sun className="w-4 h-4 text-amber-400 drop-shadow-[0_0_6px_rgba(245,158,11,0.8)]" />
         )}
       </motion.div>
     </motion.button>

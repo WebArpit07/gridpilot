@@ -5,14 +5,14 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Activity,
   AlertCircle,
-  Battery,
-  Calendar,
-  CheckCircle2,
+  Bell,
   ChevronDown,
   Layers,
   Pause,
   Play,
   RotateCcw,
+  Search,
+  Settings,
   Sparkles,
   Zap,
 } from "lucide-react";
@@ -32,6 +32,7 @@ import {
 } from "@/lib/api";
 import { buildPowerTimeline, formatKw, formatPct } from "@/lib/utils";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { EVShowcaseGrid } from "@/components/ev-showcase-grid";
 import { MetricsOverview } from "@/components/metrics-overview";
 import { TimelineView } from "@/components/timeline-view";
 import { PowerChart } from "@/components/power-chart";
@@ -61,6 +62,9 @@ export default function DashboardPage() {
   // Interactive Timeline Time Scrubber
   const [scrubberMinute, setScrubberMinute] = useState<number | null>(null);
   const [isPlayingScrubber, setIsPlayingScrubber] = useState<boolean>(false);
+
+  // Active navigation pill state (matching the top navigation in uploaded image)
+  const [activeNavTab, setActiveNavTab] = useState<"dashboard" | "station" | "fleet" | "history">("dashboard");
 
   // Health check routine
   const verifyHealth = useCallback(async () => {
@@ -171,99 +175,139 @@ export default function DashboardPage() {
   const currentScenarioSummary = scenarios.find((s) => s.name === selectedScenarioName);
 
   return (
-    <div className="relative z-10 flex flex-col flex-1 pb-16">
-      {/* 1. Stunning Sticky Glassmorphic Header */}
-      <header className="sticky top-0 z-50 backdrop-blur-2xl bg-white/75 dark:bg-black/65 border-b border-black/[0.06] dark:border-white/[0.08] transition-colors">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
-          {/* Logo & Status Badge */}
-          <div className="flex items-center gap-3">
-            <div className="relative flex items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-tr from-cyan-500 to-indigo-600 text-white shadow-md shadow-cyan-500/25">
-              <Zap className="w-5 h-5 fill-current" />
-              <div className="absolute inset-0 rounded-xl bg-cyan-400 opacity-20 blur-sm pointer-events-none" />
-            </div>
+    <div className="relative z-10 flex flex-col flex-1 pb-20">
+      {/* 1. Header (Redesigned to match the exact top navbar from uploaded image) */}
+      <header className="sticky top-0 z-50 backdrop-blur-2xl bg-[#0e0717]/85 border-b border-purple-500/20 transition-colors shadow-[0_4px_24px_rgba(0,0,0,0.5)]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 flex items-center justify-between gap-4">
+          {/* Left: Brand Logo & Navigation Pills */}
+          <div className="flex items-center gap-6">
+            {/* Sleek Geometric Brand Logo */}
+            <div className="flex items-center gap-3">
+              <div className="relative flex items-center justify-center w-10 h-10 rounded-2xl bg-gradient-to-tr from-fuchsia-600 to-purple-600 text-white shadow-[0_0_16px_rgba(217,70,239,0.5)] border border-fuchsia-400/40">
+                <Zap className="w-5 h-5 fill-current text-white" />
+                <div className="absolute inset-0 rounded-2xl bg-fuchsia-400 opacity-30 blur-sm pointer-events-none" />
+              </div>
 
-            <div className="flex flex-col">
-              <div className="flex items-center gap-2">
-                <span className="font-bold text-base tracking-tight text-zinc-900 dark:text-white">
-                  GridPilot
-                </span>
-                <span className="hidden sm:inline-block px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold bg-cyan-500/10 text-cyan-700 dark:text-cyan-400 border border-cyan-500/20">
-                  Repo Reboot I.Fest &apos;26
+              <div className="flex flex-col">
+                <div className="flex items-center gap-2">
+                  <span className="font-extrabold text-lg tracking-wider text-white uppercase drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)]">
+                    GRIDPILOT
+                  </span>
+                  <span className="hidden sm:inline-block px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-fuchsia-500/15 text-fuchsia-300 border border-fuchsia-500/30">
+                    Repo Reboot &apos;26
+                  </span>
+                </div>
+                <span className="text-[10px] text-purple-300/70 font-medium tracking-tight">
+                  Autonomous EV Fleet & Power Orchestrator
                 </span>
               </div>
-              <span className="text-[10px] text-zinc-500 dark:text-zinc-400">
-                Liquid OS EV Fleet & Power Orchestrator
-              </span>
             </div>
 
+            {/* Navigation Pills (Dashboard, Station, Car State, History - exactly like in image) */}
+            <nav className="hidden lg:flex items-center rounded-2xl bg-[#140b22]/90 p-1 border border-purple-500/20 shadow-inner">
+              {[
+                { id: "dashboard", label: "Dashboard" },
+                { id: "station", label: "Station" },
+                { id: "fleet", label: "Car State" },
+                { id: "history", label: "History" },
+              ].map((tab) => {
+                const isActive = activeNavTab === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() => setActiveNavTab(tab.id as any)}
+                    className="relative px-3.5 py-1.5 text-xs font-bold transition-all cursor-pointer"
+                  >
+                    {isActive && (
+                      <motion.div
+                        layoutId="activeHeaderNavTab"
+                        className="absolute inset-0 rounded-xl bg-gradient-to-r from-fuchsia-600 to-purple-600 shadow-[0_0_12px_rgba(217,70,239,0.4)]"
+                        transition={{ type: "spring", stiffness: 450, damping: 32 }}
+                      />
+                    )}
+                    <span
+                      className={`relative z-10 ${
+                        isActive
+                          ? "text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.5)]"
+                          : "text-purple-300/70 hover:text-white"
+                      }`}
+                    >
+                      {tab.label}
+                    </span>
+                  </button>
+                );
+              })}
+            </nav>
+          </div>
+
+          {/* Right Header Controls */}
+          <div className="flex items-center gap-3">
             {/* Pulsing Status Badge */}
-            <div className="hidden md:flex items-center gap-1.5 pl-3 border-l border-black/[0.06] dark:border-white/[0.08]">
+            <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-2xl bg-[#140b22] border border-purple-500/20">
               <span className="relative flex h-2 w-2">
                 {backendStatus === "online" ? (
                   <>
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]" />
                   </>
                 ) : backendStatus === "checking" ? (
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-400 animate-pulse" />
                 ) : (
                   <>
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75" />
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500" />
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-400" />
                   </>
                 )}
               </span>
-              <span className="text-[11px] font-mono font-medium text-zinc-600 dark:text-zinc-300">
+              <span className="text-[11px] font-mono font-bold text-purple-200">
                 {backendStatus === "online"
-                  ? "SYSTEM ONLINE (8000)"
+                  ? "SYSTEM ONLINE"
                   : backendStatus === "checking"
                   ? "CONNECTING..."
                   : "BACKEND OFFLINE"}
               </span>
             </div>
-          </div>
 
-          {/* Center / Right Header Controls */}
-          <div className="flex items-center gap-2.5">
             {/* Scenario Selector Dropdown */}
             <div className="relative">
               <select
                 value={selectedScenarioName}
                 onChange={(e) => setSelectedScenarioName(e.target.value)}
                 disabled={isRunning}
-                className="appearance-none pl-3 pr-8 py-1.5 rounded-xl text-xs font-semibold bg-white/40 dark:bg-white/5 border border-black/[0.08] dark:border-white/10 text-zinc-800 dark:text-zinc-200 backdrop-blur-md focus:outline-none focus:ring-2 focus:ring-cyan-500/50 cursor-pointer transition-colors hover:bg-white/60 dark:hover:bg-white/10"
+                className="appearance-none pl-3.5 pr-8 py-1.5 rounded-2xl text-xs font-bold bg-[#140b22] border border-purple-500/25 text-white backdrop-blur-xl focus:outline-none focus:ring-2 focus:ring-fuchsia-500/50 cursor-pointer transition-all hover:border-purple-500/40"
               >
                 {scenarios.map((scen) => (
                   <option
                     key={scen.name}
                     value={scen.name}
-                    className="bg-zinc-100 dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100"
+                    className="bg-[#160d26] text-white"
                   >
                     {scen.name}
                   </option>
                 ))}
               </select>
-              <ChevronDown className="w-3.5 h-3.5 text-zinc-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <ChevronDown className="w-3.5 h-3.5 text-purple-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             </div>
 
-            {/* Run / Rerun Simulation Action Button */}
+            {/* Glowing Gradient "Simulate" Button (matching "Start Charging" button in image) */}
             <motion.button
               type="button"
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
               onClick={() => executeSimulation(selectedScenarioName)}
               disabled={isRunning}
-              className="relative px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-sm shadow-cyan-500/25 hover:shadow-cyan-500/40 flex items-center gap-1.5 transition-all disabled:opacity-60 cursor-pointer overflow-hidden"
+              className="relative px-4 py-1.5 rounded-2xl text-xs font-bold bg-gradient-to-r from-pink-500 via-fuchsia-500 to-purple-600 text-white shadow-[0_0_16px_rgba(236,72,153,0.45)] hover:shadow-[0_0_24px_rgba(236,72,153,0.6)] flex items-center gap-1.5 transition-all disabled:opacity-60 cursor-pointer overflow-hidden border border-fuchsia-400/40"
             >
               <Sparkles className="w-3.5 h-3.5" />
-              <span>{isRunning ? "Running..." : "Simulate"}</span>
+              <span>{isRunning ? "Simulating..." : "Simulate"}</span>
               {isRunning && (
                 <div className="absolute inset-0 bg-white/20 animate-pulse pointer-events-none" />
               )}
             </motion.button>
 
-            {/* Policy View Mode Switcher */}
-            <div className="hidden lg:flex items-center rounded-xl bg-black/[0.04] dark:bg-white/[0.05] p-1 border border-black/[0.06] dark:border-white/[0.08] relative">
+            {/* Policy Mode Switcher */}
+            <div className="hidden xl:flex items-center rounded-2xl bg-[#140b22] p-1 border border-purple-500/20 relative">
               {(
                 [
                   { id: "split", label: "Side-by-Side" },
@@ -277,20 +321,20 @@ export default function DashboardPage() {
                     key={tab.id}
                     type="button"
                     onClick={() => setPolicyView(tab.id)}
-                    className="relative px-2.5 py-1 text-xs font-semibold transition-colors z-10 cursor-pointer"
+                    className="relative px-3 py-1 text-xs font-bold transition-colors z-10 cursor-pointer"
                   >
                     {isActive && (
                       <motion.div
                         layoutId="activePolicyViewTab"
-                        className="absolute inset-0 rounded-lg bg-white dark:bg-white/15 shadow-sm border border-black/[0.04] dark:border-white/10"
-                        transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                        className="absolute inset-0 rounded-xl bg-gradient-to-r from-fuchsia-600 to-purple-600 shadow-[0_0_10px_rgba(217,70,239,0.35)]"
+                        transition={{ type: "spring", stiffness: 450, damping: 32 }}
                       />
                     )}
                     <span
                       className={`relative z-20 ${
                         isActive
-                          ? "text-zinc-900 dark:text-white"
-                          : "text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200"
+                          ? "text-white"
+                          : "text-purple-300/70 hover:text-white"
                       }`}
                     >
                       {tab.label}
@@ -298,6 +342,15 @@ export default function DashboardPage() {
                   </button>
                 );
               })}
+            </div>
+
+            {/* User Profile Avatar with glowing purple ring (as shown in the image navbar!) */}
+            <div className="hidden sm:flex items-center gap-2 pl-1 border-l border-purple-500/20">
+              <div className="relative w-8 h-8 rounded-full p-[1.5px] bg-gradient-to-tr from-fuchsia-500 via-purple-500 to-cyan-400 shadow-[0_0_10px_rgba(217,70,239,0.4)]">
+                <div className="w-full h-full rounded-full bg-[#1b0d30] flex items-center justify-center text-white text-xs font-bold">
+                  GP
+                </div>
+              </div>
             </div>
 
             {/* Dark/Light Mode Toggle */}
@@ -308,24 +361,24 @@ export default function DashboardPage() {
 
       {/* Main Content Area */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 space-y-6 w-full">
-        {/* Scenario Context Pill & Physical Constraints Bar */}
+        {/* Active Scenario Context Banner */}
         <motion.div
           initial={{ opacity: 0, y: -6 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
-          className="relative rounded-2xl border border-black/[0.06] dark:border-white/[0.08] bg-white/70 dark:bg-white/[0.03] backdrop-blur-xl p-4 shadow-sm"
+          className="relative rounded-3xl border border-purple-500/25 bg-[#160d26]/85 backdrop-blur-2xl p-5 shadow-[0_12px_36px_rgba(0,0,0,0.45)]"
         >
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
             <div className="space-y-1">
-              <div className="flex items-center gap-2">
-                <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-cyan-500/15 text-cyan-700 dark:text-cyan-400 border border-cyan-500/25">
+              <div className="flex items-center gap-2.5">
+                <span className="px-3 py-0.5 rounded-full text-xs font-bold bg-fuchsia-500/20 text-fuchsia-300 border border-fuchsia-500/35 shadow-[0_0_8px_rgba(217,70,239,0.25)]">
                   {selectedScenarioName}
                 </span>
-                <span className="text-sm font-semibold text-zinc-900 dark:text-white">
+                <span className="text-sm font-bold text-white tracking-tight">
                   Active Simulation Benchmark
                 </span>
               </div>
-              <p className="text-xs text-zinc-600 dark:text-zinc-400 max-w-2xl leading-relaxed">
+              <p className="text-xs text-purple-200/80 max-w-2xl leading-relaxed">
                 {currentScenarioSummary?.description ||
                   "Evaluating dispatch scheduling policies under strict station capacity constraints and vehicle deadlines."}
               </p>
@@ -334,48 +387,48 @@ export default function DashboardPage() {
             {/* Physical Station Specs */}
             {scenarioDetail && (
               <div className="flex flex-wrap items-center gap-2 text-xs">
-                <div className="px-3 py-1.5 rounded-xl bg-black/[0.02] dark:bg-white/[0.03] border border-black/[0.04] dark:border-white/[0.06]">
-                  <span className="text-[10px] text-zinc-400 block uppercase font-mono">
+                <div className="px-3.5 py-1.5 rounded-2xl bg-[#11081e] border border-purple-500/20">
+                  <span className="text-[10px] text-purple-400 block uppercase font-mono">
                     Station Capacity
                   </span>
-                  <span className="font-semibold text-zinc-800 dark:text-zinc-200 font-mono">
+                  <span className="font-bold text-white font-mono">
                     {formatKw(scenarioDetail.station.total_power_limit_kw)}
                   </span>
                 </div>
 
-                <div className="px-3 py-1.5 rounded-xl bg-black/[0.02] dark:bg-white/[0.03] border border-black/[0.04] dark:border-white/[0.06]">
-                  <span className="text-[10px] text-zinc-400 block uppercase font-mono">
+                <div className="px-3.5 py-1.5 rounded-2xl bg-[#11081e] border border-purple-500/20">
+                  <span className="text-[10px] text-purple-400 block uppercase font-mono">
                     Efficiency (η)
                   </span>
-                  <span className="font-semibold text-zinc-800 dark:text-zinc-200 font-mono">
+                  <span className="font-bold text-white font-mono">
                     {formatPct(scenarioDetail.station.charging_efficiency * 100)}
                   </span>
                 </div>
 
-                <div className="px-3 py-1.5 rounded-xl bg-black/[0.02] dark:bg-white/[0.03] border border-black/[0.04] dark:border-white/[0.06]">
-                  <span className="text-[10px] text-zinc-400 block uppercase font-mono">
+                <div className="px-3.5 py-1.5 rounded-2xl bg-[#11081e] border border-purple-500/20">
+                  <span className="text-[10px] text-purple-400 block uppercase font-mono">
                     Connectors
                   </span>
-                  <span className="font-semibold text-zinc-800 dark:text-zinc-200 font-mono">
+                  <span className="font-bold text-white font-mono">
                     {scenarioDetail.station.points.length} points
                   </span>
                 </div>
 
-                <div className="px-3 py-1.5 rounded-xl bg-black/[0.02] dark:bg-white/[0.03] border border-black/[0.04] dark:border-white/[0.06]">
-                  <span className="text-[10px] text-zinc-400 block uppercase font-mono">
+                <div className="px-3.5 py-1.5 rounded-2xl bg-[#11081e] border border-purple-500/20">
+                  <span className="text-[10px] text-purple-400 block uppercase font-mono">
                     Vehicles
                   </span>
-                  <span className="font-semibold text-zinc-800 dark:text-zinc-200 font-mono">
+                  <span className="font-bold text-white font-mono">
                     {scenarioDetail.vehicles.length} EVs
                   </span>
                 </div>
 
                 {scenarioDetail.events.length > 0 && (
-                  <div className="px-3 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-700 dark:text-amber-400">
-                    <span className="text-[10px] block uppercase font-semibold">
+                  <div className="px-3.5 py-1.5 rounded-2xl bg-amber-500/15 border border-amber-500/30 text-amber-300">
+                    <span className="text-[10px] block uppercase font-bold">
                       Dynamic Events
                     </span>
-                    <span className="font-semibold font-mono">
+                    <span className="font-bold font-mono">
                       {scenarioDetail.events.length} injected
                     </span>
                   </div>
@@ -390,16 +443,16 @@ export default function DashboardPage() {
           <motion.div
             initial={{ opacity: 0, scale: 0.98 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="rounded-2xl border border-rose-500/30 bg-rose-500/10 p-4 text-xs text-rose-700 dark:text-rose-300 flex items-center justify-between"
+            className="rounded-3xl border border-rose-500/40 bg-rose-500/15 p-4 text-xs text-rose-300 flex items-center justify-between"
           >
             <div className="flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 shrink-0" />
+              <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
               <span>{errorMsg}</span>
             </div>
             <button
               type="button"
               onClick={() => executeSimulation(selectedScenarioName)}
-              className="px-2.5 py-1 rounded-lg bg-rose-500 text-white font-semibold hover:bg-rose-600 transition-colors"
+              className="px-3 py-1 rounded-xl bg-rose-500 text-white font-bold hover:bg-rose-600 transition-colors shadow-sm"
             >
               Retry
             </button>
@@ -419,7 +472,15 @@ export default function DashboardPage() {
               transition={{ duration: 0.45, ease: "easeOut" }}
               className="space-y-6"
             >
-              {/* 1. Metric Comparison Cards */}
+              {/* 1. Iconic EV Showcase Top Grid (from uploaded design image: EV Cars + Charge Goals + Trip Planner) */}
+              <section>
+                <EVShowcaseGrid
+                  scenarioDetail={scenarioDetail}
+                  metrics={comparison[policyView === "fcfs" ? "fcfs" : "lsf"].metrics}
+                />
+              </section>
+
+              {/* 2. Metric Comparison Cards */}
               <section>
                 <MetricsOverview
                   fcfsMetrics={comparison.fcfs.metrics}
@@ -428,7 +489,7 @@ export default function DashboardPage() {
                 />
               </section>
 
-              {/* 2. Dynamic Power Curve Area Chart */}
+              {/* 3. Dynamic Power Curve Area Chart */}
               <section>
                 <PowerChart
                   data={powerTimeline}
@@ -436,19 +497,19 @@ export default function DashboardPage() {
                 />
               </section>
 
-              {/* 3. Interactive Minute Playback / Scrubber Controller */}
-              <div className="rounded-2xl border border-black/[0.06] dark:border-white/[0.08] bg-white/70 dark:bg-white/[0.03] backdrop-blur-xl p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
-                <div className="flex items-center gap-2.5">
+              {/* 4. Interactive Simulation Playback / Scrubber Controller */}
+              <div className="rounded-3xl border border-purple-500/20 bg-[#160d26]/85 backdrop-blur-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 shadow-[0_10px_30px_rgba(0,0,0,0.45)]">
+                <div className="flex items-center gap-3">
                   <button
                     type="button"
                     onClick={() => setIsPlayingScrubber(!isPlayingScrubber)}
-                    className="w-8 h-8 rounded-xl bg-cyan-500 text-white flex items-center justify-center shadow-xs hover:bg-cyan-600 transition-colors"
+                    className="w-9 h-9 rounded-2xl bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white flex items-center justify-center shadow-[0_0_12px_rgba(236,72,153,0.5)] hover:brightness-110 transition-all cursor-pointer border border-fuchsia-400/40"
                     title={isPlayingScrubber ? "Pause Playback" : "Play Minute-by-Minute Replay"}
                   >
                     {isPlayingScrubber ? (
-                      <Pause className="w-3.5 h-3.5" />
+                      <Pause className="w-4 h-4" />
                     ) : (
-                      <Play className="w-3.5 h-3.5 ml-0.5" />
+                      <Play className="w-4 h-4 ml-0.5" />
                     )}
                   </button>
 
@@ -458,18 +519,18 @@ export default function DashboardPage() {
                       setScrubberMinute(0);
                       setIsPlayingScrubber(false);
                     }}
-                    className="w-8 h-8 rounded-xl bg-black/[0.04] dark:bg-white/[0.05] text-zinc-600 dark:text-zinc-300 flex items-center justify-center hover:bg-black/[0.08] dark:hover:bg-white/[0.1] transition-colors"
+                    className="w-9 h-9 rounded-2xl bg-[#11081e] text-purple-300 flex items-center justify-center hover:bg-purple-950/60 border border-purple-500/20 transition-all cursor-pointer"
                     title="Reset Scrubber"
                   >
-                    <RotateCcw className="w-3.5 h-3.5" />
+                    <RotateCcw className="w-4 h-4" />
                   </button>
 
                   <div className="text-xs font-mono">
-                    <span className="text-zinc-400">Simulation Scrubber: </span>
-                    <span className="font-bold text-cyan-600 dark:text-cyan-400">
+                    <span className="text-purple-300/70">Simulation Scrubber: </span>
+                    <span className="font-bold text-cyan-400 drop-shadow-[0_0_6px_rgba(6,182,212,0.8)]">
                       t={scrubberMinute ?? 0}m
                     </span>
-                    <span className="text-zinc-400"> / 90m</span>
+                    <span className="text-purple-300/70"> / 90m</span>
                   </div>
                 </div>
 
@@ -483,12 +544,12 @@ export default function DashboardPage() {
                       setScrubberMinute(Number(e.target.value));
                       setIsPlayingScrubber(false);
                     }}
-                    className="w-full accent-cyan-500 cursor-pointer h-1.5 bg-black/[0.06] dark:bg-white/[0.1] rounded-lg"
+                    className="w-full accent-fuchsia-500 cursor-pointer h-1.5 bg-[#11081e] rounded-lg border border-purple-500/25"
                   />
                 </div>
               </div>
 
-              {/* 4. Charging Point Gantt Timelines */}
+              {/* 5. Charging Point Gantt Timelines */}
               <section className="space-y-4">
                 {policyView === "split" ? (
                   <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
@@ -522,7 +583,7 @@ export default function DashboardPage() {
                 )}
               </section>
 
-              {/* 5. Event Log & Explainability Feed */}
+              {/* 6. Event Log & Explainability Feed */}
               <section>
                 <EventLog
                   fcfsTrace={comparison.fcfs.trace}

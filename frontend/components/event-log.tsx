@@ -55,7 +55,6 @@ export function EventLog({
     });
   }, [currentTrace, selectedType, searchQuery]);
 
-  const totalPages = Math.max(1, Math.ceil(filteredTrace.length / pageSize));
   const paginatedEvents = filteredTrace.slice(0, page * pageSize);
 
   const getEventTypeBadge = (type: string) => {
@@ -63,37 +62,37 @@ export function EventLog({
       case "arrival":
         return {
           icon: <LogIn className="w-3 h-3" />,
-          bg: "bg-blue-500/15 text-blue-700 dark:text-blue-300 border-blue-500/25",
+          bg: "bg-cyan-500/15 text-cyan-300 border-cyan-500/30",
         };
       case "completion":
         return {
           icon: <CheckCircle2 className="w-3 h-3" />,
-          bg: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/25",
+          bg: "bg-fuchsia-500/15 text-fuchsia-300 border-fuchsia-500/30",
         };
       case "departure":
         return {
           icon: <LogOut className="w-3 h-3" />,
-          bg: "bg-zinc-500/15 text-zinc-700 dark:text-zinc-300 border-zinc-500/25",
+          bg: "bg-purple-500/15 text-purple-300 border-purple-500/30",
         };
       case "capacitychange":
         return {
           icon: <Zap className="w-3 h-3" />,
-          bg: "bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/25",
+          bg: "bg-amber-500/15 text-amber-300 border-amber-500/30",
         };
       case "allocationupdate":
         return {
           icon: <RefreshCw className="w-3 h-3" />,
-          bg: "bg-cyan-500/15 text-cyan-700 dark:text-cyan-300 border-cyan-500/25",
+          bg: "bg-teal-500/15 text-teal-300 border-teal-500/30",
         };
       case "failure":
         return {
           icon: <AlertOctagon className="w-3 h-3" />,
-          bg: "bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-500/25",
+          bg: "bg-rose-500/15 text-rose-300 border-rose-500/30",
         };
       default:
         return {
           icon: <Clock className="w-3 h-3" />,
-          bg: "bg-zinc-500/10 text-zinc-600 dark:text-zinc-400 border-zinc-500/20",
+          bg: "bg-purple-500/10 text-purple-300 border-purple-500/20",
         };
     }
   };
@@ -115,37 +114,37 @@ export function EventLog({
   };
 
   return (
-    <div className="relative rounded-2xl border border-black/[0.06] dark:border-white/[0.08] bg-white/70 dark:bg-white/[0.03] backdrop-blur-xl p-5 shadow-sm space-y-4 overflow-hidden">
+    <div className="relative rounded-3xl border border-purple-500/20 bg-[#160d26]/85 backdrop-blur-2xl p-5 shadow-[0_12px_36px_rgba(0,0,0,0.45)] space-y-4 overflow-hidden">
       {/* Header and Filter Controls */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 border-b border-black/[0.06] dark:border-white/[0.08] pb-3">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 border-b border-purple-500/20 pb-3">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/20">
+          <div className="w-8 h-8 rounded-xl flex items-center justify-center bg-fuchsia-500/15 text-fuchsia-400 border border-fuchsia-500/25 shadow-inner">
             <Clock className="w-4 h-4" />
           </div>
           <div>
-            <h3 className="text-sm font-semibold text-zinc-900 dark:text-white flex items-center gap-2">
+            <h3 className="text-sm font-bold text-white flex items-center gap-2">
               Event Log & Explainability Feed
-              <span className="text-xs font-normal text-zinc-400">
+              <span className="text-xs font-normal text-purple-400">
                 ({filteredTrace.length} events logged)
               </span>
             </h3>
-            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+            <p className="text-xs text-purple-300/70">
               Deterministic minute-by-minute simulation decisions with algorithmic rationales
             </p>
           </div>
         </div>
 
         {/* Policy Selector & Search */}
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2.5">
           {onPolicyChange && (
-            <div className="flex items-center rounded-xl bg-black/[0.04] dark:bg-white/[0.05] p-0.5 border border-black/[0.06] dark:border-white/[0.08]">
+            <div className="flex items-center rounded-2xl bg-[#11081e] p-1 border border-purple-500/25">
               <button
                 type="button"
                 onClick={() => onPolicyChange("lsf")}
-                className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all ${
+                className={`px-3 py-1 rounded-xl text-xs font-bold transition-all ${
                   activePolicy === "lsf"
-                    ? "bg-cyan-500 text-white shadow-sm"
-                    : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
+                    ? "bg-gradient-to-r from-fuchsia-600 to-purple-600 text-white shadow-[0_0_12px_rgba(217,70,239,0.35)]"
+                    : "text-purple-300/70 hover:text-white"
                 }`}
               >
                 LSF Trace
@@ -153,10 +152,10 @@ export function EventLog({
               <button
                 type="button"
                 onClick={() => onPolicyChange("fcfs")}
-                className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all ${
+                className={`px-3 py-1 rounded-xl text-xs font-bold transition-all ${
                   activePolicy === "fcfs"
-                    ? "bg-indigo-500 text-white shadow-sm"
-                    : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
+                    ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-[0_0_12px_rgba(168,85,247,0.35)]"
+                    : "text-purple-300/70 hover:text-white"
                 }`}
               >
                 FCFS Trace
@@ -166,7 +165,7 @@ export function EventLog({
 
           {/* Search Box */}
           <div className="relative">
-            <Search className="w-3.5 h-3.5 text-zinc-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+            <Search className="w-3.5 h-3.5 text-purple-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               value={searchQuery}
@@ -175,7 +174,7 @@ export function EventLog({
                 setPage(1);
               }}
               placeholder="Search ID, event, reason..."
-              className="pl-8 pr-3 py-1 rounded-xl text-xs bg-black/[0.03] dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] text-zinc-900 dark:text-white placeholder:text-zinc-400 focus:outline-none focus:ring-1 focus:ring-cyan-500/50 w-44 sm:w-56"
+              className="pl-8 pr-3 py-1.5 rounded-2xl text-xs bg-[#11081e] border border-purple-500/25 text-white placeholder:text-purple-400/50 focus:outline-none focus:ring-2 focus:ring-fuchsia-500/50 w-44 sm:w-56 transition-all"
             />
           </div>
         </div>
@@ -184,44 +183,47 @@ export function EventLog({
       {/* Filter Category Chips */}
       <div className="flex flex-wrap items-center gap-1.5 text-xs">
         {["ALL", "Arrival", "AllocationUpdate", "CapacityChange", "Completion", "Departure", "Failure"].map(
-          (t) => (
-            <button
-              key={t}
-              type="button"
-              onClick={() => {
-                setSelectedType(t);
-                setPage(1);
-              }}
-              className={`px-2.5 py-0.5 rounded-lg text-[11px] font-medium border transition-colors ${
-                selectedType.toLowerCase() === t.toLowerCase()
-                  ? "bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 border-transparent shadow-xs"
-                  : "bg-black/[0.02] dark:bg-white/[0.03] border-black/[0.04] dark:border-white/[0.06] text-zinc-600 dark:text-zinc-400 hover:bg-black/[0.05] dark:hover:bg-white/[0.06]"
-              }`}
-            >
-              {t === "AllocationUpdate"
-                ? "Allocation"
-                : t === "CapacityChange"
-                ? "Capacity Drop"
-                : t}
-            </button>
-          )
+          (t) => {
+            const isSelected = selectedType.toLowerCase() === t.toLowerCase();
+            return (
+              <button
+                key={t}
+                type="button"
+                onClick={() => {
+                  setSelectedType(t);
+                  setPage(1);
+                }}
+                className={`px-3 py-1 rounded-full text-[11px] font-semibold border transition-all ${
+                  isSelected
+                    ? "bg-gradient-to-r from-fuchsia-600 to-purple-600 text-white border-fuchsia-400/50 shadow-[0_0_12px_rgba(217,70,239,0.3)]"
+                    : "bg-[#11081e] border-purple-500/20 text-purple-300 hover:border-purple-500/40 hover:text-white"
+                }`}
+              >
+                {t === "AllocationUpdate"
+                  ? "Allocation"
+                  : t === "CapacityChange"
+                  ? "Capacity Drop"
+                  : t}
+              </button>
+            );
+          }
         )}
       </div>
 
-      {/* Minimalist Data Table */}
-      <div className="overflow-x-auto rounded-xl border border-black/[0.04] dark:border-white/[0.06]">
+      {/* Luxury Dark Violet Table */}
+      <div className="overflow-x-auto rounded-2xl border border-purple-500/20 bg-[#11081e]">
         <table className="w-full text-left text-xs border-collapse">
           <thead>
-            <tr className="border-b border-black/[0.06] dark:border-white/[0.06] bg-black/[0.02] dark:bg-white/[0.02] text-zinc-400 dark:text-zinc-500 font-semibold uppercase tracking-wider text-[10px]">
-              <th className="py-2.5 px-3 w-16">Time</th>
-              <th className="py-2.5 px-3 w-32">Event</th>
-              <th className="py-2.5 px-3 w-24">Entity</th>
-              <th className="py-2.5 px-3 w-36">State Transition</th>
-              <th className="py-2.5 px-3 w-24">Power</th>
-              <th className="py-2.5 px-3">Algorithmic Decision Reason</th>
+            <tr className="border-b border-purple-500/20 bg-[#170a2a] text-purple-300 font-bold uppercase tracking-wider text-[10px]">
+              <th className="py-3 px-3.5 w-16">Time</th>
+              <th className="py-3 px-3.5 w-32">Event</th>
+              <th className="py-3 px-3.5 w-24">Entity</th>
+              <th className="py-3 px-3.5 w-36">State Transition</th>
+              <th className="py-3 px-3.5 w-24">Power</th>
+              <th className="py-3 px-3.5">Algorithmic Decision Reason</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-black/[0.03] dark:divide-white/[0.04]">
+          <tbody className="divide-y divide-purple-500/10">
             <AnimatePresence initial={false}>
               {paginatedEvents.map((record, idx) => {
                 const badge = getEventTypeBadge(record.event_type);
@@ -233,17 +235,17 @@ export function EventLog({
                     initial={{ opacity: 0, y: 3 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.2 }}
-                    className="hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors group"
+                    className="hover:bg-purple-950/30 transition-colors group"
                   >
                     {/* Time */}
-                    <td className="py-2.5 px-3 font-mono font-semibold text-cyan-600 dark:text-cyan-400 whitespace-nowrap">
+                    <td className="py-3 px-3.5 font-mono font-bold text-cyan-400 whitespace-nowrap">
                       t={record.time_minute}m
                     </td>
 
                     {/* Event Type */}
-                    <td className="py-2.5 px-3 whitespace-nowrap">
+                    <td className="py-3 px-3.5 whitespace-nowrap">
                       <span
-                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold border ${badge.bg}`}
+                        className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${badge.bg}`}
                       >
                         {badge.icon}
                         <span>{record.event_type}</span>
@@ -251,40 +253,40 @@ export function EventLog({
                     </td>
 
                     {/* Entity ID */}
-                    <td className="py-2.5 px-3 font-mono font-medium text-zinc-900 dark:text-zinc-100 whitespace-nowrap">
+                    <td className="py-3 px-3.5 font-mono font-bold text-white whitespace-nowrap">
                       {record.entity_id}
                     </td>
 
                     {/* State Transition */}
-                    <td className="py-2.5 px-3 whitespace-nowrap text-zinc-600 dark:text-zinc-300 font-mono text-[11px]">
+                    <td className="py-3 px-3.5 whitespace-nowrap text-purple-200 font-mono text-[11px]">
                       {record.previous_state ? (
-                        <span className="flex items-center gap-1">
-                          <span className="text-zinc-400">{record.previous_state}</span>
-                          <ArrowRight className="w-3 h-3 text-zinc-400 shrink-0" />
-                          <span className="font-semibold text-zinc-900 dark:text-white">
+                        <span className="flex items-center gap-1.5">
+                          <span className="text-purple-400/70">{record.previous_state}</span>
+                          <ArrowRight className="w-3 h-3 text-purple-400 shrink-0" />
+                          <span className="font-bold text-white">
                             {record.new_state}
                           </span>
                         </span>
                       ) : (
-                        <span className="font-semibold text-zinc-900 dark:text-white">
+                        <span className="font-bold text-white">
                           {record.new_state ?? "—"}
                         </span>
                       )}
                     </td>
 
                     {/* Power */}
-                    <td className="py-2.5 px-3 font-mono text-zinc-700 dark:text-zinc-300 whitespace-nowrap">
+                    <td className="py-3 px-3.5 font-mono text-purple-200 whitespace-nowrap">
                       {record.power_after_kw > 0 ? (
-                        <span className="font-semibold text-emerald-600 dark:text-emerald-400">
+                        <span className="font-bold text-emerald-400 font-mono">
                           {formatKw(record.power_after_kw)}
                         </span>
                       ) : (
-                        <span className="text-zinc-400">0.0 kW</span>
+                        <span className="text-purple-400/50 font-mono">0.0 kW</span>
                       )}
                     </td>
 
                     {/* Reason & Explainability Tooltip */}
-                    <td className="py-2.5 px-3 text-zinc-700 dark:text-zinc-300">
+                    <td className="py-3 px-3.5 text-purple-200">
                       <div className="flex items-center gap-1.5 justify-between">
                         <span className="truncate max-w-[380px]" title={record.reason}>
                           {record.reason}
@@ -293,13 +295,13 @@ export function EventLog({
                         <div className="relative group/tooltip shrink-0">
                           <button
                             type="button"
-                            className="text-zinc-400 hover:text-cyan-400 p-0.5 transition-colors focus:outline-none"
+                            className="text-purple-400 hover:text-fuchsia-400 p-0.5 transition-colors focus:outline-none"
                             aria-label="Explainability formula"
                           >
                             <HelpCircle className="w-3.5 h-3.5" />
                           </button>
-                          <div className="absolute right-0 bottom-full mb-1.5 hidden group-hover/tooltip:block w-72 rounded-xl border border-black/[0.08] dark:border-white/10 bg-white/95 dark:bg-black/95 backdrop-blur-xl p-2.5 shadow-2xl z-50 text-[11px] leading-relaxed text-zinc-700 dark:text-zinc-200 pointer-events-none">
-                            <span className="font-bold text-cyan-600 dark:text-cyan-400 block mb-0.5">
+                          <div className="absolute right-0 bottom-full mb-1.5 hidden group-hover/tooltip:block w-72 rounded-2xl border border-purple-500/30 bg-[#140a22]/98 backdrop-blur-2xl p-3 shadow-2xl z-50 text-[11px] leading-relaxed text-purple-100 pointer-events-none">
+                            <span className="font-bold text-fuchsia-400 block mb-0.5">
                               Algorithmic Invariant:
                             </span>
                             {formula}
@@ -315,7 +317,7 @@ export function EventLog({
         </table>
 
         {filteredTrace.length === 0 && (
-          <div className="py-8 text-center text-xs text-zinc-400">
+          <div className="py-8 text-center text-xs text-purple-400">
             No events match the selected filter.
           </div>
         )}
@@ -327,7 +329,7 @@ export function EventLog({
           <button
             type="button"
             onClick={() => setPage((p) => p + 1)}
-            className="px-4 py-1.5 rounded-xl text-xs font-semibold bg-black/[0.04] dark:bg-white/[0.05] hover:bg-black/[0.08] dark:hover:bg-white/[0.1] border border-black/[0.06] dark:border-white/[0.08] text-zinc-700 dark:text-zinc-200 flex items-center gap-1.5 transition-colors"
+            className="px-5 py-2 rounded-2xl text-xs font-bold bg-[#11081e] hover:bg-purple-950/60 border border-purple-500/25 text-purple-200 hover:text-white flex items-center gap-1.5 transition-all shadow-sm"
           >
             <ChevronDown className="w-3.5 h-3.5" />
             Load More Events ({paginatedEvents.length} of {filteredTrace.length})

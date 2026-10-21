@@ -48,51 +48,51 @@ export function getStateBadgeStyle(state: VehicleState | string): {
   switch (state) {
     case "CHARGING":
       return {
-        bg: "bg-emerald-500/15 dark:bg-emerald-500/20",
-        text: "text-emerald-700 dark:text-emerald-400",
-        border: "border-emerald-500/30",
+        bg: "bg-cyan-500/15 dark:bg-cyan-500/20",
+        text: "text-cyan-600 dark:text-cyan-300",
+        border: "border-cyan-500/30",
         label: "Charging",
       };
     case "POWER_REDUCED":
       return {
         bg: "bg-amber-500/15 dark:bg-amber-500/20",
-        text: "text-amber-700 dark:text-amber-400",
+        text: "text-amber-600 dark:text-amber-300",
         border: "border-amber-500/30",
         label: "Power-Reduced",
       };
     case "COMPLETED":
       return {
-        bg: "bg-cyan-500/15 dark:bg-cyan-500/20",
-        text: "text-cyan-700 dark:text-cyan-400",
-        border: "border-cyan-500/30",
+        bg: "bg-fuchsia-500/15 dark:bg-fuchsia-500/20",
+        text: "text-fuchsia-600 dark:text-fuchsia-300",
+        border: "border-fuchsia-500/30",
         label: "Completed",
       };
     case "WAITING":
       return {
-        bg: "bg-indigo-500/15 dark:bg-indigo-500/20",
-        text: "text-indigo-700 dark:text-indigo-400",
-        border: "border-indigo-500/30",
+        bg: "bg-purple-500/15 dark:bg-purple-500/20",
+        text: "text-purple-600 dark:text-purple-300",
+        border: "border-purple-500/30",
         label: "Queued / Waiting",
       };
     case "DEPARTED":
       return {
         bg: "bg-zinc-500/15 dark:bg-zinc-500/20",
-        text: "text-zinc-700 dark:text-zinc-400",
+        text: "text-zinc-600 dark:text-zinc-400",
         border: "border-zinc-500/30",
         label: "Departed",
       };
     case "CANCELLED":
       return {
         bg: "bg-rose-500/15 dark:bg-rose-500/20",
-        text: "text-rose-700 dark:text-rose-400",
+        text: "text-rose-600 dark:text-rose-400",
         border: "border-rose-500/30",
         label: "Cancelled",
       };
     default:
       return {
-        bg: "bg-zinc-500/10 dark:bg-zinc-500/20",
-        text: "text-zinc-700 dark:text-zinc-300",
-        border: "border-zinc-500/20",
+        bg: "bg-purple-500/10 dark:bg-purple-500/15",
+        text: "text-purple-600 dark:text-purple-300",
+        border: "border-purple-500/20",
         label: String(state),
       };
   }

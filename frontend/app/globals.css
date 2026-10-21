@@ -2,41 +2,64 @@
 
 @variant dark (&:where(.dark, .dark *));
 
+@theme {
+  --font-sans: var(--font-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: var(--font-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
 :root {
-  --background: #f8fafc;
-  --foreground: #090d16;
-  --card: rgba(255, 255, 255, 0.85);
-  --card-foreground: #090d16;
-  --muted: #f1f5f9;
-  --muted-foreground: #64748b;
-  --border: rgba(15, 23, 42, 0.08);
-  --glass-bg: rgba(255, 255, 255, 0.75);
-  --glass-border: rgba(255, 255, 255, 0.6);
-  --glass-shine: rgba(255, 255, 255, 0.4);
+  --background: #0d0716;
+  --foreground: #f8f6fc;
+  --card: rgba(22, 13, 36, 0.75);
+  --card-foreground: #ffffff;
+  --muted: #1c1130;
+  --muted-foreground: #9a8eb5;
+  --border: rgba(168, 85, 247, 0.18);
+  --glass-bg: rgba(22, 13, 36, 0.72);
+  --glass-border: rgba(168, 85, 247, 0.22);
+  --glass-shine: rgba(255, 255, 255, 0.08);
+  --glow-pink: rgba(236, 72, 153, 0.4);
+  --glow-purple: rgba(168, 85, 247, 0.35);
+  --glow-cyan: rgba(6, 182, 212, 0.35);
 }
 
 .dark {
-  --background: #07090e;
-  --foreground: #f8fafc;
-  --card: rgba(15, 18, 25, 0.75);
-  --card-foreground: #f8fafc;
-  --muted: #151922;
-  --muted-foreground: #94a3b8;
-  --border: rgba(255, 255, 255, 0.08);
-  --glass-bg: rgba(13, 16, 23, 0.65);
-  --glass-border: rgba(255, 255, 255, 0.08);
-  --glass-shine: rgba(255, 255, 255, 0.06);
+  --background: #0b0614;
+  --foreground: #f8f6fc;
+  --card: rgba(22, 13, 36, 0.75);
+  --card-foreground: #ffffff;
+  --muted: #1a0f2c;
+  --muted-foreground: #9b8eb6;
+  --border: rgba(168, 85, 247, 0.18);
+  --glass-bg: rgba(20, 11, 34, 0.78);
+  --glass-border: rgba(168, 85, 247, 0.22);
+  --glass-shine: rgba(255, 255, 255, 0.08);
+}
+
+/* Light mode fallback (still keeping high aesthetic consistency with dark purple undertones) */
+html:not(.dark) {
+  --background: #fbf8ff;
+  --foreground: #140924;
+  --card: rgba(255, 255, 255, 0.88);
+  --card-foreground: #140924;
+  --muted: #f3ebfc;
+  --muted-foreground: #6b5c82;
+  --border: rgba(168, 85, 247, 0.16);
+  --glass-bg: rgba(255, 255, 255, 0.82);
+  --glass-border: rgba(168, 85, 247, 0.2);
+  --glass-shine: rgba(255, 255, 255, 0.6);
 }
 
 body {
   background-color: var(--background);
   color: var(--foreground);
+  font-family: var(--font-sans);
   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   overflow-x: hidden;
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* Liquid OS ambient backdrop glow */
+/* Cyberpunk Luxury Velvet Backdrop Ambient Glows */
 .liquid-glow-bg {
   position: fixed;
   top: 0;
@@ -52,57 +75,69 @@ body {
   position: absolute;
   top: -15%;
   left: 20%;
-  width: 65vw;
-  height: 65vw;
+  width: 70vw;
+  height: 70vw;
   border-radius: 9999px;
-  background: radial-gradient(circle, rgba(14, 165, 233, 0.08) 0%, rgba(99, 102, 241, 0.04) 45%, transparent 70%);
-  filter: blur(80px);
-}
-
-.dark .liquid-glow-1 {
-  background: radial-gradient(circle, rgba(14, 165, 233, 0.12) 0%, rgba(99, 102, 241, 0.06) 50%, transparent 70%);
-  filter: blur(100px);
+  background: radial-gradient(circle, rgba(168, 85, 247, 0.16) 0%, rgba(217, 70, 239, 0.09) 35%, rgba(99, 102, 241, 0.04) 65%, transparent 75%);
+  filter: blur(90px);
 }
 
 .liquid-glow-2 {
   position: absolute;
-  top: 40%;
-  right: -10%;
-  width: 50vw;
-  height: 50vw;
+  top: 45%;
+  right: -15%;
+  width: 60vw;
+  height: 60vw;
   border-radius: 9999px;
-  background: radial-gradient(circle, rgba(16, 185, 129, 0.06) 0%, rgba(6, 182, 212, 0.03) 50%, transparent 70%);
-  filter: blur(90px);
+  background: radial-gradient(circle, rgba(236, 72, 153, 0.12) 0%, rgba(139, 92, 246, 0.08) 45%, transparent 70%);
+  filter: blur(100px);
 }
 
-.dark .liquid-glow-2 {
-  background: radial-gradient(circle, rgba(16, 185, 129, 0.09) 0%, rgba(6, 182, 212, 0.04) 50%, transparent 70%);
+.liquid-glow-3 {
+  position: absolute;
+  bottom: -20%;
+  left: 5%;
+  width: 55vw;
+  height: 55vw;
+  border-radius: 9999px;
+  background: radial-gradient(circle, rgba(6, 182, 212, 0.08) 0%, rgba(168, 85, 247, 0.05) 50%, transparent 75%);
   filter: blur(110px);
 }
 
-/* Liquid OS Glass Card styling */
+/* Luxury Glass Card styling */
 .glass-panel {
   background: var(--glass-bg);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid var(--border);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.05);
-}
-
-.dark .glass-panel {
-  box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.5), inset 0 1px 0 0 rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 16px 36px -12px rgba(0, 0, 0, 0.55),
+              0 0 24px -8px rgba(168, 85, 247, 0.12),
+              inset 0 1px 0 0 var(--glass-shine);
 }
 
 .glass-pill {
-  background: rgba(255, 255, 255, 0.6);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid var(--border);
+  background: rgba(30, 18, 48, 0.65);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(168, 85, 247, 0.2);
 }
 
-.dark .glass-pill {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+/* Neon Glow Accents */
+.neon-glow-pink {
+  box-shadow: 0 0 20px rgba(236, 72, 153, 0.45);
+}
+
+.neon-glow-purple {
+  box-shadow: 0 0 20px rgba(168, 85, 247, 0.4);
+}
+
+.neon-glow-cyan {
+  box-shadow: 0 0 20px rgba(6, 182, 212, 0.4);
+}
+
+.neon-border-pink {
+  border-color: rgba(236, 72, 153, 0.5);
+  box-shadow: inset 0 0 12px rgba(236, 72, 153, 0.25), 0 0 16px rgba(236, 72, 153, 0.2);
 }
 
 /* Custom modern scrollbar */
@@ -112,16 +147,16 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: rgba(13, 7, 22, 0.5);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(148, 163, 184, 0.3);
+  background: rgba(168, 85, 247, 0.3);
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(148, 163, 184, 0.5);
+  background: rgba(217, 70, 239, 0.55);
 }
 
 /* Sweeping skeleton shimmer */
@@ -147,9 +182,25 @@ body {
   background-image: linear-gradient(
     90deg,
     rgba(255, 255, 255, 0) 0,
-    rgba(255, 255, 255, 0.08) 20%,
-    rgba(255, 255, 255, 0.18) 60%,
+    rgba(168, 85, 247, 0.08) 20%,
+    rgba(236, 72, 153, 0.18) 60%,
     rgba(255, 255, 255, 0)
   );
   animation: shimmer 2s infinite;
+}
+
+/* Subtle pulsating energy glow */
+@keyframes pulseGlow {
+  0%, 100% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.04);
+  }
+}
+
+.pulse-glow {
+  animation: pulseGlow 3s ease-in-out infinite;
 }
