@@ -74,6 +74,7 @@ def compare_policies(request: ScenarioRunRequest) -> ComparisonResponse:
             station_config=request.station,
             vehicles=request.vehicles,
             dynamic_events=request.events,
+            solar_enabled=request.solar_enabled,
         )
         result = runner.run_comparison(total_sim_time_min=request.simulation_minutes)
 
@@ -100,6 +101,7 @@ def compare_policies(request: ScenarioRunRequest) -> ComparisonResponse:
                 trace=result["lsf"]["trace"],
                 vehicles=result["lsf"]["vehicles"],
             ),
+            solar_enabled=request.solar_enabled,
         )
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -167,6 +169,58 @@ def generate_comparison_csv(result: dict, station_efficiency: float, scenario_na
             f"{f_val:.2f}{unit_str}",
             f"{l_val:.2f}{unit_str}",
             f"{delta:+.2f}{unit_str}",
+            outcome,
+        ])
+
+    # Dedicated "Renewable & Financial Accounting" row group
+    writer.writerow([])
+    writer.writerow(["# SUBSECTION: RENEWABLE & FINANCIAL ACCOUNTING", "", "", "", ""])
+    writer.writerow(["Metric Name", "FCFS Value", "LSF Value", "Delta (LSF - FCFS)", "Outcome / Improvement"])
+
+    renewable_metrics_def = [
+        ("Solar Energy Consumed (kWh)", "solar_energy_kwh", True, "kWh"),
+        ("Net Grid Energy Consumed (kWh)", "grid_energy_kwh", False, "kWh"),
+        ("Renewable Fraction (%)", "renewable_fraction_pct", True, "%"),
+        ("Total Electricity Cost ($)", "total_cost_usd", False, "$"),
+        ("Cost Saved by Solar ($)", "cost_saved_usd", True, "$"),
+        ("CO2 Emissions Avoided (kg)", "co2_avoided_kg", True, "kg"),
+    ]
+
+    for label, key, higher_is_better, unit in renewable_metrics_def:
+        f_val = getattr(fcfs_m, key, None)
+        if f_val is None and isinstance(fcfs_m, dict):
+            f_val = fcfs_m.get(key, 0.0)
+        l_val = getattr(lsf_m, key, None)
+        if l_val is None and isinstance(lsf_m, dict):
+            l_val = lsf_m.get(key, 0.0)
+
+        f_val = float(f_val or 0.0)
+        l_val = float(l_val or 0.0)
+        delta = l_val - f_val
+
+        if abs(delta) < 1e-4:
+            outcome = "Parity"
+        elif (higher_is_better and delta > 0) or (not higher_is_better and delta < 0):
+            outcome = "LSF Outperforms"
+        else:
+            outcome = "FCFS Ahead"
+
+        if unit == "$":
+            f_str = f"${f_val:.2f}"
+            l_str = f"${l_val:.2f}"
+            d_str = f"${abs(delta):.2f}"
+            d_str = f"+{d_str}" if delta >= 0 else f"-{d_str}"
+        else:
+            unit_str = f" {unit}".rstrip()
+            f_str = f"{f_val:.2f}{unit_str}"
+            l_str = f"{l_val:.2f}{unit_str}"
+            d_str = f"{delta:+.2f}{unit_str}"
+
+        writer.writerow([
+            label,
+            f_str,
+            l_str,
+            d_str,
             outcome,
         ])
 
@@ -286,6 +340,7 @@ def export_simulation_csv(request: ScenarioRunRequest) -> Response:
             station_config=request.station,
             vehicles=request.vehicles,
             dynamic_events=request.events,
+            solar_enabled=request.solar_enabled,
         )
         result = runner.run_comparison(total_sim_time_min=request.simulation_minutes)
 

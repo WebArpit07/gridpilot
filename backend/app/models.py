@@ -14,6 +14,12 @@ from app.engine.models import (
     calculate_interval_energy,
 )
 from app.engine.metrics import SimulationMetrics
+from app.engine.renewables import (
+    TariffProfile,
+    SolarGenerationProfile,
+    CarbonMetrics,
+    calculate_renewable_split,
+)
 
 __all__ = [
     "VehicleState",
@@ -26,4 +32,8 @@ __all__ = [
     "calculate_slack",
     "calculate_interval_energy",
     "SimulationMetrics",
+    "TariffProfile",
+    "SolarGenerationProfile",
+    "CarbonMetrics",
+    "calculate_renewable_split",
 ]

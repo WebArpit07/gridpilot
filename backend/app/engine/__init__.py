@@ -20,6 +20,12 @@ from app.engine.metrics import (
 from app.engine.simulator import SimulationEngine, EventRecord, EventType
 from app.engine.scenarios import get_scenario
 from app.engine.runner import ComparisonRunner
+from app.engine.renewables import (
+    TariffProfile,
+    SolarGenerationProfile,
+    CarbonMetrics,
+    calculate_renewable_split,
+)
 
 __all__ = [
     "VehicleState",
@@ -45,4 +51,8 @@ __all__ = [
     "EventType",
     "get_scenario",
     "ComparisonRunner",
+    "TariffProfile",
+    "SolarGenerationProfile",
+    "CarbonMetrics",
+    "calculate_renewable_split",
 ]

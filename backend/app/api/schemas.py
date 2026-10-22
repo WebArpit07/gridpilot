@@ -13,6 +13,7 @@ class ScenarioRunRequest(BaseModel):
     vehicles: list[VehicleRequest] = Field(..., description="List of EV charging requests")
     events: list[dict] = Field(default_factory=list, description="Dynamic simulation events (e.g. capacity drops, point failures)")
     simulation_minutes: int = Field(default=60, ge=1, description="Total simulation duration in discrete minutes")
+    solar_enabled: bool = Field(default=True, description="Enable dynamic Solar PV generation and ToU tariff accounting")
 
 
 class PolicyResult(BaseModel):
@@ -25,6 +26,7 @@ class ComparisonResponse(BaseModel):
     scenario_name: str = Field(..., description="Name or identifier of the scenario evaluated")
     fcfs: PolicyResult = Field(..., description="First-Come, First-Served policy simulation results")
     lsf: PolicyResult = Field(..., description="Least-Slack-First policy simulation results")
+    solar_enabled: bool = Field(default=True, description="Whether solar and dynamic tariff accounting was active")
 
 
 class ScenarioSummary(BaseModel):

@@ -129,12 +129,15 @@ class StationConfig(BaseModel):
     currently_available_power_kw: float = Field(..., ge=0, description="Dynamic currently available power capacity")
     charging_efficiency: float = Field(default=0.92, gt=0.0, le=1.0, description="Grid-to-battery charging efficiency (eta)")
     points: List[ChargingPoint] = Field(default_factory=list, description="Collection of charging points at station")
+    solar_capacity_kw: float = Field(default=0.0, ge=0.0, description="Installed on-site solar PV capacity in kW")
+    grid_connection_limit_kw: Optional[float] = Field(default=None, ge=0.0, description="Dedicated grid connection limit in kW")
 
     @model_validator(mode="after")
     def validate_capacity(self):
-        if self.currently_available_power_kw > self.total_power_limit_kw:
+        max_limit = self.total_power_limit_kw + self.solar_capacity_kw
+        if self.currently_available_power_kw > max_limit + 1e-4:
             raise ValueError(
                 f"currently_available_power_kw ({self.currently_available_power_kw}) "
-                f"cannot exceed total_power_limit_kw ({self.total_power_limit_kw})"
+                f"cannot exceed total capacity limit ({max_limit})"
             )
         return self

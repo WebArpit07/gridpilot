@@ -305,6 +305,119 @@ def _build_scenario_d() -> tuple[StationConfig, list[VehicleRequest], list[dict]
     return station, vehicles, events
 
 
+def _build_scenario_e() -> tuple[StationConfig, list[VehicleRequest], list[dict]]:
+    """
+    Scenario E (Campus Solar Microgrid):
+    4-point station with a 25 kW solar array + 30 kW grid connection (55 kW peak limit).
+    8 arriving EVs across morning and midday.
+    Demonstrates how GridPilot dynamically schedules charging sessions to absorb peak midday
+    solar power and minimize expensive peak-grid power purchases.
+    """
+    points = [ChargingPoint(id=f"CP-{i}", max_power_kw=22.0) for i in range(1, 5)]
+    station = StationConfig(
+        total_power_limit_kw=55.0,
+        currently_available_power_kw=30.0,
+        charging_efficiency=0.92,
+        points=points,
+        solar_capacity_kw=25.0,
+        grid_connection_limit_kw=30.0,
+    )
+
+    vehicles = [
+        # EV-E1: Morning arrival with flexible dwell time (needs 15 kWh)
+        VehicleRequest(
+            id="EV-E1",
+            battery_capacity_kwh=50.0,
+            current_soc=20.0,
+            target_soc=50.0,
+            arrival_time_min=0,
+            departure_time_min=150,
+            max_charging_power_kw=22.0,
+            priority=1,
+        ),
+        # EV-E2: Morning arrival with flexible dwell time (needs 18 kWh)
+        VehicleRequest(
+            id="EV-E2",
+            battery_capacity_kwh=60.0,
+            current_soc=30.0,
+            target_soc=60.0,
+            arrival_time_min=10,
+            departure_time_min=160,
+            max_charging_power_kw=22.0,
+            priority=1,
+        ),
+        # EV-E3: Morning arrival with flexible dwell time (needs 15 kWh)
+        VehicleRequest(
+            id="EV-E3",
+            battery_capacity_kwh=50.0,
+            current_soc=20.0,
+            target_soc=50.0,
+            arrival_time_min=15,
+            departure_time_min=160,
+            max_charging_power_kw=22.0,
+            priority=1,
+        ),
+        # EV-E4: Morning arrival with flexible dwell time (needs 18 kWh)
+        VehicleRequest(
+            id="EV-E4",
+            battery_capacity_kwh=60.0,
+            current_soc=20.0,
+            target_soc=50.0,
+            arrival_time_min=20,
+            departure_time_min=170,
+            max_charging_power_kw=22.0,
+            priority=1,
+        ),
+        # EV-E5: Urgent morning request with tight deadline before peak solar (needs 12 kWh)
+        VehicleRequest(
+            id="EV-E5",
+            battery_capacity_kwh=50.0,
+            current_soc=20.0,
+            target_soc=44.0,
+            arrival_time_min=40,
+            departure_time_min=95,
+            max_charging_power_kw=22.0,
+            priority=2,
+        ),
+        # EV-E6: Urgent request with tight deadline (needs 12 kWh)
+        VehicleRequest(
+            id="EV-E6",
+            battery_capacity_kwh=50.0,
+            current_soc=20.0,
+            target_soc=44.0,
+            arrival_time_min=50,
+            departure_time_min=105,
+            max_charging_power_kw=22.0,
+            priority=2,
+        ),
+        # EV-E7: Midday arrival absorbing peak solar insolation (needs 18 kWh)
+        VehicleRequest(
+            id="EV-E7",
+            battery_capacity_kwh=60.0,
+            current_soc=20.0,
+            target_soc=50.0,
+            arrival_time_min=60,
+            departure_time_min=140,
+            max_charging_power_kw=22.0,
+            priority=1,
+        ),
+        # EV-E8: Midday arrival absorbing peak solar insolation (needs 15 kWh)
+        VehicleRequest(
+            id="EV-E8",
+            battery_capacity_kwh=50.0,
+            current_soc=20.0,
+            target_soc=50.0,
+            arrival_time_min=75,
+            departure_time_min=150,
+            max_charging_power_kw=22.0,
+            priority=2,
+        ),
+    ]
+
+    events: list[dict] = []
+    return station, vehicles, events
+
+
 def get_scenario(name: str) -> tuple[StationConfig, list[VehicleRequest], list[dict]]:
     """
     Retrieves predefined benchmark scenarios defined in the GridPilot blueprint.
@@ -314,6 +427,7 @@ def get_scenario(name: str) -> tuple[StationConfig, list[VehicleRequest], list[d
       - 'B', 'scenario_b', 'mixed': 4 points, mixed long-dwell low-power and short-dwell high-power arrivals.
       - 'C', 'scenario_c', 'capacity_drop': 4 points, 80kW to 30kW drop at t=30.
       - 'D', 'scenario_d', 'failure', 'infeasible': Infeasible request (slack < 0) and simulated point failure at t=15.
+      - 'E', 'scenario_e', 'solar', 'microgrid': 4 points (22kW), 25kW solar array + 30kW grid connection, 8 EVs.
     """
     key = name.strip().lower()
     if key in ("a", "scenario_a", "scenario a", "congestion"):
@@ -324,8 +438,11 @@ def get_scenario(name: str) -> tuple[StationConfig, list[VehicleRequest], list[d
         return _build_scenario_c()
     if key in ("d", "scenario_d", "scenario d", "failure", "infeasible", "failure/infeasible"):
         return _build_scenario_d()
+    if key in ("e", "scenario_e", "scenario e", "microgrid", "campus solar microgrid", "solar"):
+        return _build_scenario_e()
 
     raise ValueError(
         f"Unknown scenario '{name}'. Available scenarios are: 'Scenario A' (congestion), "
-        f"'Scenario B' (mixed), 'Scenario C' (capacity_drop), 'Scenario D' (failure/infeasible)."
+        f"'Scenario B' (mixed), 'Scenario C' (capacity_drop), 'Scenario D' (failure/infeasible), "
+        f"'Scenario E' (campus solar microgrid)."
     )

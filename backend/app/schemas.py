@@ -14,6 +14,12 @@ from app.engine.models import (
 )
 from app.engine.metrics import SimulationMetrics
 from app.engine.simulator import EventRecord, EventType
+from app.engine.renewables import (
+    TariffProfile,
+    SolarGenerationProfile,
+    CarbonMetrics,
+    calculate_renewable_split,
+)
 
 __all__ = [
     "VehicleState",
@@ -28,4 +34,8 @@ __all__ = [
     "SimulationMetrics",
     "EventRecord",
     "EventType",
+    "TariffProfile",
+    "SolarGenerationProfile",
+    "CarbonMetrics",
+    "calculate_renewable_split",
 ]

@@ -15,6 +15,12 @@ from app.engine.models import (
 )
 from app.engine.allocator import allocate_power, calculate_session_cap
 from app.engine.metrics import check_invariants, PhysicsInvariantError
+from app.engine.renewables import (
+    TariffProfile,
+    SolarGenerationProfile,
+    CarbonMetrics,
+    calculate_renewable_split,
+)
 
 
 class EventType(str, Enum):
@@ -24,16 +30,27 @@ class EventType(str, Enum):
     CAPACITY_CHANGE = "CapacityChange"
     FAILURE = "Failure"
     ALLOCATION_UPDATE = "AllocationUpdate"
+    RENEWABLE_DISPATCH = "RenewableDispatch"
 
 
 class EventRecord(BaseModel):
     time_minute: int = Field(..., ge=0, description="Simulation minute when event occurred")
-    event_type: str = Field(..., description="Event type: Arrival, Completion, Departure, CapacityChange, Failure, AllocationUpdate")
-    entity_id: str = Field(..., description="ID of entity (vehicle, point, station)")
+    event_type: str = Field(..., description="Event type: Arrival, Completion, Departure, CapacityChange, Failure, AllocationUpdate, RenewableDispatch")
+    entity_id: str = Field(..., description="ID of entity (vehicle, point, station, solar)")
     previous_state: Optional[str] = Field(default=None, description="Previous state")
     new_state: Optional[str] = Field(default=None, description="New state")
     reason: str = Field(default="", description="Deterministic explanation")
     power_after_kw: float = Field(default=0.0, ge=0.0, description="Power after event in kW")
+
+    # Optional renewable & financial accounting metadata
+    solar_power_kw: Optional[float] = Field(default=None, description="Available solar generation power at minute in kW")
+    grid_power_kw: Optional[float] = Field(default=None, description="Grid power draw at minute in kW")
+    solar_energy_kwh: Optional[float] = Field(default=None, description="Solar energy consumed in interval in kWh")
+    grid_energy_kwh: Optional[float] = Field(default=None, description="Grid energy consumed in interval in kWh")
+    tariff_rate: Optional[float] = Field(default=None, description="Applicable dynamic tariff rate in $/kWh")
+    cost_usd: Optional[float] = Field(default=None, description="Grid electricity cost incurred in interval ($)")
+    cost_saved_usd: Optional[float] = Field(default=None, description="Electricity cost saved by solar in interval ($)")
+    co2_avoided_kg: Optional[float] = Field(default=None, description="CO2 emissions avoided by solar in interval (kg)")
 
 
 class SimulationEngine:
@@ -42,6 +59,10 @@ class SimulationEngine:
         station_config: StationConfig,
         vehicles: list[VehicleRequest],
         policy: Callable,
+        solar_profile: Optional[SolarGenerationProfile] = None,
+        tariff_profile: Optional[TariffProfile] = None,
+        carbon_metrics: Optional[CarbonMetrics] = None,
+        solar_enabled: bool = True,
     ):
         self.station_config = station_config
         self.vehicles = vehicles
@@ -49,6 +70,40 @@ class SimulationEngine:
         self.current_time_min: int = 0
         self.event_log: list[EventRecord] = []
         self._arrived_ids: set[str] = set()
+
+        # Phase 8 Renewable Energy Integration
+        self.solar_enabled = solar_enabled
+        if self.solar_enabled:
+            if solar_profile is not None:
+                self.solar_profile: Optional[SolarGenerationProfile] = solar_profile
+            elif getattr(station_config, "solar_capacity_kw", 0.0) > 0:
+                self.solar_profile = SolarGenerationProfile(
+                    installed_capacity_kw=station_config.solar_capacity_kw
+                )
+            else:
+                self.solar_profile = None
+        else:
+            self.solar_profile = None
+
+        self.tariff_profile: TariffProfile = tariff_profile or TariffProfile()
+        self.carbon_metrics: CarbonMetrics = carbon_metrics or CarbonMetrics()
+
+        self.solar_energy_consumed_kwh: float = 0.0
+        self.grid_energy_consumed_kwh: float = 0.0
+        self.total_charging_cost: float = 0.0
+        self.cost_saved_by_solar: float = 0.0
+        self.co2_avoided_kg: float = 0.0
+
+        # Base grid connection limit tracking
+        self._grid_cap_kw: float = (
+            getattr(station_config, "grid_connection_limit_kw", None)
+            or station_config.currently_available_power_kw
+        )
+
+        # Initialize minute 0 power budget if solar is active
+        if self.solar_profile and self.solar_enabled:
+            p_solar_0 = self.solar_profile.get_solar_power_kw(0)
+            self.station_config.currently_available_power_kw = self._grid_cap_kw + p_solar_0
 
     def _log_event(
         self,
@@ -58,6 +113,7 @@ class SimulationEngine:
         new_state: Optional[str],
         reason: str,
         power_after_kw: float,
+        **extra_kwargs,
     ) -> None:
         self.event_log.append(
             EventRecord(
@@ -68,6 +124,7 @@ class SimulationEngine:
                 new_state=new_state,
                 reason=reason,
                 power_after_kw=max(0.0, float(power_after_kw)),
+                **extra_kwargs,
             )
         )
 
@@ -101,14 +158,20 @@ class SimulationEngine:
     def set_station_available_power(self, power_kw: float, reason: str = "Capacity change") -> None:
         """Dynamically adjusts station available power and logs CapacityChange event."""
         old_power = self.station_config.currently_available_power_kw
-        self.station_config.currently_available_power_kw = power_kw
+        self._grid_cap_kw = power_kw
+        if self.solar_profile and self.solar_enabled:
+            p_solar = self.solar_profile.get_solar_power_kw(self.current_time_min)
+        else:
+            p_solar = 0.0
+        new_power = self._grid_cap_kw + p_solar
+        self.station_config.currently_available_power_kw = new_power
         self._log_event(
             event_type="CapacityChange",
             entity_id="station",
             previous_state=f"{old_power:.1f} kW",
-            new_state=f"{power_kw:.1f} kW",
+            new_state=f"{new_power:.1f} kW",
             reason=reason,
-            power_after_kw=power_kw,
+            power_after_kw=new_power,
         )
 
     def set_point_operational(
@@ -160,6 +223,7 @@ class SimulationEngine:
 
         # 1. Energy Accounting (for previous minute [current_time - 1, current_time))
         if self.current_time_min > 0:
+            interval_station_energy_kwh = 0.0
             for v in self.vehicles:
                 if (v.state in (VehicleState.CHARGING, VehicleState.POWER_REDUCED)) and v.allocated_power_kw > 0:
                     grid_kwh, bat_kwh = calculate_interval_energy(
@@ -179,6 +243,57 @@ class SimulationEngine:
 
                     v.delivered_battery_energy_kwh += actual_bat_kwh
                     v.delivered_grid_energy_kwh += actual_grid_kwh
+                    interval_station_energy_kwh += actual_grid_kwh
+
+            # Phase 8: Renewable energy split & dynamic ToU tariff cost accounting
+            t_prev = self.current_time_min - 1
+            tariff = self.tariff_profile.get_tariff_at_minute(t_prev)
+            if self.solar_profile and self.solar_enabled:
+                p_solar_prev = self.solar_profile.get_solar_power_kw(t_prev)
+            else:
+                p_solar_prev = 0.0
+
+            split = calculate_renewable_split(
+                allocated_power_kw=interval_station_energy_kwh * 60.0,
+                available_solar_kw=p_solar_prev,
+                tariff_rate=tariff,
+                delta_t_min=1,
+                carbon_intensity_kg_per_kwh=self.carbon_metrics.grid_carbon_intensity_kg_per_kwh,
+            )
+
+            int_solar_kwh = split["solar_energy_kwh"]
+            int_grid_kwh = split["grid_energy_kwh"]
+            int_cost = split["grid_cost_usd"]
+            int_saved = split["cost_saved_usd"]
+            int_co2 = split["co2_avoided_kg"]
+
+            self.solar_energy_consumed_kwh += int_solar_kwh
+            self.grid_energy_consumed_kwh += int_grid_kwh
+            self.total_charging_cost += int_cost
+            self.cost_saved_by_solar += int_saved
+            self.co2_avoided_kg += int_co2
+
+            if (self.solar_profile and self.solar_enabled) or interval_station_energy_kwh > 0:
+                self._log_event(
+                    event_type=EventType.RENEWABLE_DISPATCH.value,
+                    entity_id="station",
+                    previous_state=None,
+                    new_state=None,
+                    reason=(
+                        f"Renewable dispatch t={t_prev}: solar={int_solar_kwh:.4f} kWh, "
+                        f"grid={int_grid_kwh:.4f} kWh, tariff=${tariff:.2f}/kWh, "
+                        f"cost=${int_cost:.4f}, saved=${int_saved:.4f}"
+                    ),
+                    power_after_kw=split["solar_power_kw"],
+                    solar_power_kw=p_solar_prev,
+                    grid_power_kw=split["grid_power_kw"],
+                    solar_energy_kwh=int_solar_kwh,
+                    grid_energy_kwh=int_grid_kwh,
+                    tariff_rate=tariff,
+                    cost_usd=int_cost,
+                    cost_saved_usd=int_saved,
+                    co2_avoided_kg=int_co2,
+                )
 
         # 2. Completions
         for v in self.vehicles:
@@ -280,6 +395,11 @@ class SimulationEngine:
             if v.state in (VehicleState.CHARGING, VehicleState.POWER_REDUCED)
             and v.assigned_point_id is not None
         ]
+
+        # Update available power budget considering available solar generation at current minute
+        if self.solar_profile and self.solar_enabled:
+            p_solar_curr = self.solar_profile.get_solar_power_kw(self.current_time_min)
+            self.station_config.currently_available_power_kw = self._grid_cap_kw + p_solar_curr
 
         if active_sessions:
             old_powers = {v.id: v.allocated_power_kw for v in active_sessions}

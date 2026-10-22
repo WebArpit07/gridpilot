@@ -8,6 +8,11 @@ from app.engine.models import StationConfig, VehicleRequest
 from app.engine.policies import fcfs_policy, least_slack_first_policy
 from app.engine.simulator import SimulationEngine, EventRecord
 from app.engine.metrics import SimulationMetrics, calculate_metrics
+from app.engine.renewables import (
+    TariffProfile,
+    SolarGenerationProfile,
+    CarbonMetrics,
+)
 
 
 class ComparisonRunner:
@@ -21,10 +26,18 @@ class ComparisonRunner:
         station_config: StationConfig,
         vehicles: list[VehicleRequest],
         dynamic_events: Optional[list[dict]] = None,
+        solar_profile: Optional[SolarGenerationProfile] = None,
+        tariff_profile: Optional[TariffProfile] = None,
+        carbon_metrics: Optional[CarbonMetrics] = None,
+        solar_enabled: bool = True,
     ):
         self.station_config = station_config
         self.vehicles = vehicles
         self.dynamic_events = dynamic_events or []
+        self.solar_profile = solar_profile
+        self.tariff_profile = tariff_profile
+        self.carbon_metrics = carbon_metrics
+        self.solar_enabled = solar_enabled
 
     def _execute_simulation(
         self,
@@ -39,6 +52,10 @@ class ComparisonRunner:
             station_config=station,
             vehicles=vehicles,
             policy=policy,
+            solar_profile=self.solar_profile,
+            tariff_profile=self.tariff_profile,
+            carbon_metrics=self.carbon_metrics,
+            solar_enabled=self.solar_enabled,
         )
 
         # Group dynamic events by simulation minute

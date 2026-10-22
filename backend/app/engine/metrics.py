@@ -33,6 +33,14 @@ class SimulationMetrics(BaseModel):
     deadline_misses: int = Field(..., description="Count of vehicles that failed to complete by deadline")
     infeasible_requests: int = Field(..., description="Count of requests that were provably infeasible upon arrival")
 
+    # Renewable Energy & Financial KPIs
+    solar_energy_kwh: float = Field(default=0.0, description="Total solar energy directly consumed by EVs in kWh")
+    grid_energy_kwh: float = Field(default=0.0, description="Total net energy drawn from the utility grid in kWh")
+    renewable_fraction_pct: float = Field(default=0.0, description="Percentage of total charging energy supplied by solar (0-100%)")
+    total_cost_usd: float = Field(default=0.0, description="Total electricity cost incurred under dynamic Time-of-Use tariffs ($)")
+    cost_saved_usd: float = Field(default=0.0, description="Financial cost saved by consuming on-site solar power ($)")
+    co2_avoided_kg: float = Field(default=0.0, description="Total greenhouse gas CO2 emissions avoided by solar generation (kg)")
+
 
 def check_invariants(
     station: StationConfig,
@@ -69,12 +77,13 @@ def check_invariants(
             f"exceeds currently available station power ({station.currently_available_power_kw:.4f} kW)"
         )
 
-    # Physical impossibility: allocated power exceeds total grid limit
-    if total_allocated > station.total_power_limit_kw + 1e-4:
+    # Physical impossibility: allocated power exceeds total station capacity
+    station_cap_limit = station.total_power_limit_kw + getattr(station, "solar_capacity_kw", 0.0)
+    if total_allocated > station_cap_limit + 1e-4:
         is_critical = True
         violations.append(
             f"Critical physics violation: Total allocated power ({total_allocated:.4f} kW) "
-            f"exceeds total grid limit ({station.total_power_limit_kw:.4f} kW)"
+            f"exceeds total station capacity limit ({station_cap_limit:.4f} kW)"
         )
 
     if station.currently_available_power_kw < -1e-4:
@@ -364,6 +373,27 @@ def calculate_metrics(
 
     peak_station_demand_kw = round(peak_demand, 4)
 
+    # 8. Renewable energy and Time-of-Use tariff metrics derived from trace
+    renewable_events = [
+        e for e in trace
+        if getattr(e, "event_type", "") in ("RenewableDispatch", "RenewableAccounting")
+    ]
+    if renewable_events:
+        solar_energy_kwh = round(sum(float(getattr(e, "solar_energy_kwh", 0.0) or 0.0) for e in renewable_events), 4)
+        grid_energy_kwh = round(sum(float(getattr(e, "grid_energy_kwh", 0.0) or 0.0) for e in renewable_events), 4)
+        total_e = solar_energy_kwh + grid_energy_kwh
+        renewable_fraction_pct = round((solar_energy_kwh / total_e) * 100.0, 4) if total_e > 0 else 0.0
+        total_cost_usd = round(sum(float(getattr(e, "cost_usd", 0.0) or 0.0) for e in renewable_events), 4)
+        cost_saved_usd = round(sum(float(getattr(e, "cost_saved_usd", 0.0) or 0.0) for e in renewable_events), 4)
+        co2_avoided_kg = round(sum(float(getattr(e, "co2_avoided_kg", 0.0) or 0.0) for e in renewable_events), 4)
+    else:
+        solar_energy_kwh = 0.0
+        grid_energy_kwh = total_grid_energy_kwh
+        renewable_fraction_pct = 0.0
+        total_cost_usd = 0.0
+        cost_saved_usd = 0.0
+        co2_avoided_kg = 0.0
+
     return SimulationMetrics(
         average_wait_time_min=average_wait_time_min,
         average_charge_time_min=average_charge_time_min,
@@ -377,4 +407,10 @@ def calculate_metrics(
         unserved_energy_kwh=unserved_energy_kwh,
         deadline_misses=deadline_misses,
         infeasible_requests=infeasible_requests,
+        solar_energy_kwh=solar_energy_kwh,
+        grid_energy_kwh=grid_energy_kwh,
+        renewable_fraction_pct=renewable_fraction_pct,
+        total_cost_usd=total_cost_usd,
+        cost_saved_usd=cost_saved_usd,
+        co2_avoided_kg=co2_avoided_kg,
     )
