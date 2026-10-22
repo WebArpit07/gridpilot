@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Download } from "lucide-react";
 
 import {
   ComparisonResponse,
@@ -13,6 +13,7 @@ import {
 } from "@/lib/types";
 import {
   checkHealth,
+  exportComparisonCsv,
   fetchScenarioDetail,
   fetchScenarios,
   runComparison,
@@ -46,6 +47,7 @@ export default function DashboardPage() {
   // Simulation execution state
   const [comparison, setComparison] = useState<ComparisonResponse | null>(null);
   const [isRunning, setIsRunning] = useState<boolean>(false);
+  const [isExporting, setIsExporting] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   // Policy View Switch: 'split' (side-by-side) | 'lsf' | 'fcfs'
@@ -131,6 +133,45 @@ export default function DashboardPage() {
     []
   );
 
+  // Export comparison report as downloadable CSV
+  const handleExportCsv = useCallback(async () => {
+    if (!scenarioDetail) return;
+    setIsExporting(true);
+    try {
+      const maxDep = Math.max(
+        ...scenarioDetail.vehicles.map((v) => v.departure_time_min),
+        60
+      );
+      const maxEvent = Math.max(
+        0,
+        ...scenarioDetail.events.map((e) => e.time_minute || 0)
+      );
+      const simTime = Math.max(maxDep + 15, maxEvent + 15, 90);
+
+      const blob = await exportComparisonCsv({
+        scenario_name: scenarioDetail.scenario_name,
+        station: scenarioDetail.station,
+        vehicles: scenarioDetail.vehicles,
+        events: scenarioDetail.events,
+        simulation_minutes: simTime,
+      });
+
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      const safeName = scenarioDetail.scenario_name.toLowerCase().replace(/\s+/g, "_");
+      a.download = `gridpilot_${safeName}_report.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      setErrorMsg(err instanceof Error ? err.message : String(err));
+    } finally {
+      setIsExporting(false);
+    }
+  }, [scenarioDetail]);
+
   // Run automatically when selectedScenarioName changes
   useEffect(() => {
     if (selectedScenarioName) {
@@ -179,6 +220,8 @@ export default function DashboardPage() {
         onScenarioChange={setSelectedScenarioName}
         isRunning={isRunning}
         onExecuteSimulation={() => executeSimulation(selectedScenarioName)}
+        onExportCsv={handleExportCsv}
+        isExporting={isExporting}
         policyView={policyView}
         onPolicyChange={setPolicyView}
         scrubberMinute={scrubberMinute}
@@ -271,6 +314,17 @@ export default function DashboardPage() {
                       </span>
                     </div>
                   )}
+
+                  <button
+                    type="button"
+                    onClick={handleExportCsv}
+                    disabled={isExporting || isRunning || !scenarioDetail}
+                    className="px-3.5 py-1.5 rounded-2xl bg-gradient-to-r from-purple-950/80 to-[#140b22] hover:bg-purple-900/60 border border-purple-500/30 text-white flex items-center gap-1.5 transition-all shadow-sm cursor-pointer disabled:opacity-50"
+                    title="Download comprehensive comparison report CSV"
+                  >
+                    <Download className="w-3.5 h-3.5 text-cyan-400" />
+                    <span className="font-bold">{isExporting ? "Exporting..." : "Export CSV"}</span>
+                  </button>
                 </div>
               )}
             </div>

@@ -36,19 +36,7 @@
   --glass-shine: rgba(255, 255, 255, 0.08);
 }
 
-/* Light mode fallback (still keeping high aesthetic consistency with dark purple undertones) */
-html:not(.dark) {
-  --background: #fbf8ff;
-  --foreground: #140924;
-  --card: rgba(255, 255, 255, 0.88);
-  --card-foreground: #140924;
-  --muted: #f3ebfc;
-  --muted-foreground: #6b5c82;
-  --border: rgba(168, 85, 247, 0.16);
-  --glass-bg: rgba(255, 255, 255, 0.82);
-  --glass-border: rgba(168, 85, 247, 0.2);
-  --glass-shine: rgba(255, 255, 255, 0.6);
-}
+
 
 body {
   background-color: var(--background);

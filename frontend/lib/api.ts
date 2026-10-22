@@ -129,3 +129,23 @@ export async function runComparison(
   }
   return res.json();
 }
+
+/**
+ * Downloads comprehensive multi-section CSV report for the comparison run.
+ */
+export async function exportComparisonCsv(
+  request: ScenarioRunRequest
+): Promise<Blob> {
+  const res = await fetchWithFallback("/api/simulations/export/csv", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(request),
+  });
+  if (!res.ok) {
+    const errText = await res.text().catch(() => "");
+    throw new Error(
+      `CSV export failed (HTTP ${res.status}): ${errText || res.statusText}`
+    );
+  }
+  return res.blob();
+}

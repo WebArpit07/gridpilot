@@ -10,6 +10,8 @@ import {
   Clock,
   Code2,
   Database,
+  Download,
+  FileSpreadsheet,
   Layers,
   LayoutDashboard,
   Menu,
@@ -21,7 +23,6 @@ import {
   Zap,
 } from "lucide-react";
 import { ScenarioSummary } from "@/lib/types";
-import { ThemeToggle } from "@/components/theme-toggle";
 
 export type NavTabId = "dashboard" | "station" | "fleet" | "history" | "backend-data";
 
@@ -35,6 +36,8 @@ interface SidebarProps {
   onScenarioChange: (name: string) => void;
   isRunning: boolean;
   onExecuteSimulation: () => void;
+  onExportCsv?: () => void;
+  isExporting?: boolean;
   policyView: "split" | "lsf" | "fcfs";
   onPolicyChange: (policy: "split" | "lsf" | "fcfs") => void;
   scrubberMinute: number | null;
@@ -56,6 +59,8 @@ export function Sidebar({
   onScenarioChange,
   isRunning,
   onExecuteSimulation,
+  onExportCsv,
+  isExporting,
   policyView,
   onPolicyChange,
   scrubberMinute,
@@ -263,6 +268,22 @@ export function Sidebar({
             <span>{isRunning ? "Running Simulation..." : "Run Simulation"}</span>
           </motion.button>
 
+          {/* Export Report (CSV) Action Button */}
+          {onExportCsv && (
+            <motion.button
+              type="button"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={onExportCsv}
+              disabled={isRunning || isExporting}
+              className="w-full py-2 px-3 rounded-2xl text-xs font-bold bg-[#140b22] hover:bg-purple-950/60 border border-purple-500/30 text-purple-200 hover:text-white flex items-center justify-center gap-2 transition-all disabled:opacity-60 cursor-pointer shadow-sm group"
+              title="Download comprehensive comparison metrics, trace logs, and vehicle outcomes as CSV"
+            >
+              <Download className="w-3.5 h-3.5 text-cyan-400 group-hover:translate-y-0.5 transition-transform" />
+              <span>{isExporting ? "Exporting CSV..." : "Export Report (CSV)"}</span>
+            </motion.button>
+          )}
+
           {/* Policy Switcher */}
           <div className="space-y-1 pt-1">
             <label className="text-[10px] text-purple-300 px-2 block">Policy View Mode</label>
@@ -336,7 +357,7 @@ export function Sidebar({
         </div>
       </div>
 
-      {/* Sidebar Footer: Theme Toggle & Admin Profile */}
+      {/* Sidebar Footer: System Specs & Admin Profile */}
       <div className="pt-3 border-t border-purple-500/20 flex items-center justify-between">
         <div className="flex items-center gap-2.5">
           <div className="relative w-9 h-9 rounded-full p-[1.5px] bg-gradient-to-tr from-fuchsia-500 via-purple-500 to-cyan-400 shadow-[0_0_10px_rgba(217,70,239,0.4)]">
@@ -351,7 +372,9 @@ export function Sidebar({
           </div>
         </div>
 
-        <ThemeToggle />
+        <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-fuchsia-500/15 text-fuchsia-300 border border-fuchsia-500/25">
+          v1.0
+        </span>
       </div>
     </div>
   );
@@ -374,16 +397,13 @@ export function Sidebar({
           </span>
         </div>
 
-        <div className="flex items-center gap-2">
-          <ThemeToggle />
-          <button
-            type="button"
-            onClick={() => setMobileOpen(true)}
-            className="p-2 rounded-xl bg-[#140b22] border border-purple-500/25 text-purple-200 hover:text-white"
-          >
-            <Menu className="w-5 h-5" />
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={() => setMobileOpen(true)}
+          className="p-2 rounded-xl bg-[#140b22] border border-purple-500/25 text-purple-200 hover:text-white"
+        >
+          <Menu className="w-5 h-5" />
+        </button>
       </div>
 
       {/* Mobile Sliding Drawer Sidebar */}
