@@ -1,6 +1,6 @@
 # GridPilot ⚡
 ### Autonomous EV Fleet & Dynamic Power Allocation Orchestrator
-> *Liquid OS EV Charging Queue & Grid-Aware Power Dispatch Manager for Repo Reboot I.Fest '26*
+> *EV Charging Queue & Grid-Aware Power Dispatch Manager for Repo Reboot I.Fest '26*
 
 ---
 
