@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+    #!/usr/bin/env python3
 """
 GridPilot — Unified One-Click Demo Orchestrator
 Repo Reboot I.Fest '26 | Stage 7 Production Launcher

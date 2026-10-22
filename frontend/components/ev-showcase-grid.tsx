@@ -299,12 +299,36 @@ export function EVShowcaseGrid({ scenarioDetail, metrics }: EVShowcaseGridProps)
 
               {/* Center Dot Milestone */}
               <circle cx="100" cy="35" r="3" fill="#ffffff" filter="drop-shadow(0 0 4px #ec4899)" />
-            </svg>
 
-            {/* Scale numbers overlay */}
-            <span className="absolute left-4 bottom-2 text-[10px] font-mono text-purple-400/80">0</span>
-            <span className="absolute top-1 text-[10px] font-mono text-purple-400/80">50</span>
-            <span className="absolute right-4 bottom-2 text-[10px] font-mono text-purple-400/80">100</span>
+              {/* Crisp Sub-pixel Gauge Scale Labels (Padding prevents collision with stroke caps & marker) */}
+              <text
+                x="25"
+                y="126"
+                textAnchor="middle"
+                dominantBaseline="central"
+                className="text-[10px] font-mono fill-slate-400 tracking-wider select-none"
+              >
+                0
+              </text>
+              <text
+                x="100"
+                y="22"
+                textAnchor="middle"
+                dominantBaseline="central"
+                className="text-[10px] font-mono fill-slate-400/90 tracking-wider select-none"
+              >
+                50
+              </text>
+              <text
+                x="175"
+                y="126"
+                textAnchor="middle"
+                dominantBaseline="central"
+                className="text-[10px] font-mono fill-slate-400 tracking-wider select-none"
+              >
+                100
+              </text>
+            </svg>
           </div>
         </div>
 
@@ -384,7 +408,18 @@ export function EVShowcaseGrid({ scenarioDetail, metrics }: EVShowcaseGridProps)
                 transition={{ duration: 1.5, ease: "easeInOut" }}
               />
 
-              {/* Destination Pin Point */}
+              {/* Start Waypoint */}
+              <circle
+                cx="28"
+                cy="85"
+                r="3.5"
+                fill="#a855f7"
+                stroke="#ffffff"
+                strokeWidth="1.5"
+                className="drop-shadow-[0_0_4px_#a855f7]"
+              />
+
+              {/* Mid Charging Station Waypoint */}
               <circle
                 cx="95"
                 cy="38"
@@ -394,16 +429,40 @@ export function EVShowcaseGrid({ scenarioDetail, metrics }: EVShowcaseGridProps)
                 strokeWidth="2"
                 className="drop-shadow-[0_0_8px_#ec4899]"
               />
+              <circle cx="95" cy="38" r="2" fill="#ec4899" />
+
+              {/* Mid Waypoint */}
               <circle
                 cx="180"
                 cy="32"
-                r="5"
+                r="3"
+                fill="#d946ef"
+                stroke="#ffffff"
+                strokeWidth="1"
+                className="drop-shadow-[0_0_4px_#d946ef]"
+              />
+
+              {/* Terminal Destination Pulsing Beacon (Anchored directly to terminal point 210, 50) */}
+              <motion.circle
+                cx="210"
+                cy="50"
+                fill="none"
+                stroke="#ec4899"
+                strokeWidth="1.5"
+                initial={{ r: 4, opacity: 0.9 }}
+                animate={{ r: 9, opacity: 0 }}
+                transition={{ duration: 1.8, repeat: Infinity, ease: "easeOut" }}
+              />
+              <circle
+                cx="210"
+                cy="50"
+                r="4.5"
                 fill="#ec4899"
                 stroke="#ffffff"
                 strokeWidth="1.5"
-                className="drop-shadow-[0_0_10px_#ec4899] animate-ping opacity-75"
+                className="drop-shadow-[0_0_10px_#ec4899]"
               />
-              <circle cx="180" cy="32" r="3.5" fill="#ffffff" />
+              <circle cx="210" cy="50" r="2" fill="#ffffff" />
             </svg>
 
             {/* Map Zoom Controls (+ / -) in the corner */}

@@ -49,6 +49,7 @@ export default function DashboardPage() {
   const [isRunning, setIsRunning] = useState<boolean>(false);
   const [isExporting, setIsExporting] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [solarEnabled, setSolarEnabled] = useState<boolean>(true);
 
   // Policy View Switch: 'split' (side-by-side) | 'lsf' | 'fcfs'
   const [policyView, setPolicyView] = useState<"split" | "lsf" | "fcfs">("split");
@@ -119,6 +120,7 @@ export default function DashboardPage() {
           vehicles: detail.vehicles,
           events: detail.events,
           simulation_minutes: simTime,
+          solar_enabled: solarEnabled,
         });
 
         setComparison(result);
@@ -130,7 +132,7 @@ export default function DashboardPage() {
         setIsRunning(false);
       }
     },
-    []
+    [solarEnabled]
   );
 
   // Export comparison report as downloadable CSV
@@ -154,6 +156,7 @@ export default function DashboardPage() {
         vehicles: scenarioDetail.vehicles,
         events: scenarioDetail.events,
         simulation_minutes: simTime,
+        solar_enabled: solarEnabled,
       });
 
       const url = window.URL.createObjectURL(blob);
@@ -237,6 +240,8 @@ export default function DashboardPage() {
         }}
         vehicleCount={scenarioDetail?.vehicles.length}
         eventCount={comparison?.lsf.trace.length}
+        solarEnabled={solarEnabled}
+        onToggleSolar={(enabled) => setSolarEnabled(enabled)}
       />
 
       {/* 2. Main Workspace Content Area */}
@@ -303,6 +308,17 @@ export default function DashboardPage() {
                       {scenarioDetail.vehicles.length} EVs
                     </span>
                   </div>
+
+                  {(scenarioDetail.station.solar_capacity_kw ?? 0) > 0 && (
+                    <div className="px-3.5 py-1.5 rounded-2xl bg-amber-500/15 border border-amber-500/30 text-amber-300">
+                      <span className="text-[10px] text-amber-400 block uppercase font-mono">
+                        Solar PV Array
+                      </span>
+                      <span className="font-bold text-amber-200 font-mono">
+                        {formatKw(scenarioDetail.station.solar_capacity_kw)}
+                      </span>
+                    </div>
+                  )}
 
                   {scenarioDetail.events.length > 0 && (
                     <div className="px-3.5 py-1.5 rounded-2xl bg-amber-500/15 border border-amber-500/30 text-amber-300">

@@ -33,6 +33,16 @@ export function formatMin(val: number | null | undefined): string {
   return `${Number(val).toFixed(1)} min`;
 }
 
+export function formatUsd(val: number | null | undefined): string {
+  if (val === null || val === undefined || isNaN(val)) return "$0.00";
+  return `$${Number(val).toFixed(2)}`;
+}
+
+export function formatKg(val: number | null | undefined): string {
+  if (val === null || val === undefined || isNaN(val)) return "0.0 kg";
+  return `${Number(val).toFixed(1)} kg`;
+}
+
 export function formatTimeMin(min: number): string {
   const hours = Math.floor(min / 60);
   const mins = min % 60;
@@ -179,12 +189,56 @@ export function buildPowerTimeline(
     const fcfsSum = Object.values(fcfsVehiclePower).reduce((acc, p) => acc + p, 0);
     const lsfSum = Object.values(lsfVehiclePower).reduce((acc, p) => acc + p, 0);
 
+    // Dynamic solar generation and active tariff tier mapping
+    let activeTariff = 0.10;
+    let tariffTier: "Off-Peak" | "Standard" | "Peak" = "Off-Peak";
+    if (m < 40) {
+      activeTariff = 0.10;
+      tariffTier = "Off-Peak";
+    } else if (m < 120) {
+      activeTariff = 0.18;
+      tariffTier = "Standard";
+    } else if (m < 180) {
+      activeTariff = 0.32;
+      tariffTier = "Peak";
+    } else {
+      activeTariff = 0.10;
+      tariffTier = "Off-Peak";
+    }
+
+    const solarCap = station.solar_capacity_kw ?? 0;
+    let solarAvailable = 0;
+    if (solarCap > 0 && m > 0 && m < 180) {
+      solarAvailable = Number((solarCap * Math.sin((Math.PI * m) / 180)).toFixed(2));
+    }
+
+    // If an explicit RenewableDispatch event was recorded, override with exact backend values
+    const lsfRenewableEv = lsfEvents?.find(
+      (ev) => ev.event_type.toLowerCase() === "renewabledispatch"
+    );
+    if (lsfRenewableEv) {
+      if (typeof lsfRenewableEv.solar_power_kw === "number") {
+        solarAvailable = lsfRenewableEv.solar_power_kw;
+      }
+      if (typeof lsfRenewableEv.tariff_rate === "number") {
+        activeTariff = lsfRenewableEv.tariff_rate;
+      }
+    }
+
+    const solarPower = Number(Math.min(lsfSum, solarAvailable).toFixed(2));
+    const gridPower = Number(Math.max(0, lsfSum - solarAvailable).toFixed(2));
+
     result.push({
       minute: m,
       fcfsPower: Number(fcfsSum.toFixed(2)),
       lsfPower: Number(lsfSum.toFixed(2)),
       availableCapacity: currentStationCapacity,
       totalCapacity: totalStationLimit,
+      solarPower,
+      gridPower,
+      solarAvailable,
+      activeTariff,
+      tariffTier,
     });
   }
 

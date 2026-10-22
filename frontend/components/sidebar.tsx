@@ -15,10 +15,12 @@ import {
   Layers,
   LayoutDashboard,
   Menu,
+  Moon,
   Pause,
   Play,
   RotateCcw,
   Sparkles,
+  Sun,
   X,
   Zap,
 } from "lucide-react";
@@ -47,6 +49,8 @@ interface SidebarProps {
   onScrubberChange: (min: number) => void;
   vehicleCount?: number;
   eventCount?: number;
+  solarEnabled?: boolean;
+  onToggleSolar?: (enabled: boolean) => void;
 }
 
 export function Sidebar({
@@ -70,6 +74,8 @@ export function Sidebar({
   onScrubberChange,
   vehicleCount,
   eventCount,
+  solarEnabled = true,
+  onToggleSolar,
 }: SidebarProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -237,7 +243,14 @@ export function Sidebar({
 
           {/* Scenario Selector */}
           <div className="space-y-1">
-            <label className="text-[10px] text-purple-300 px-2 block">Active Scenario</label>
+            <div className="flex items-center justify-between px-2">
+              <label className="text-[10px] text-purple-300 block">Active Scenario</label>
+              {selectedScenarioName.toLowerCase().includes("scenario e") && (
+                <span className="px-1.5 py-0.2 rounded-full text-[9px] font-mono font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30 animate-pulse">
+                  RENEWABLE
+                </span>
+              )}
+            </div>
             <div className="relative">
               <select
                 value={selectedScenarioName}
@@ -245,15 +258,87 @@ export function Sidebar({
                 disabled={isRunning}
                 className="w-full appearance-none pl-3 pr-8 py-2 rounded-2xl text-xs font-bold bg-[#140b22] border border-purple-500/25 text-white backdrop-blur-xl focus:outline-none focus:ring-2 focus:ring-fuchsia-500/50 cursor-pointer transition-all hover:border-purple-500/40"
               >
-                {scenarios.map((scen) => (
-                  <option key={scen.name} value={scen.name} className="bg-[#160d26] text-white">
-                    {scen.name}
-                  </option>
-                ))}
+                {scenarios.map((scen) => {
+                  const isScenarioE =
+                    scen.name.toLowerCase().includes("scenario e") ||
+                    scen.name.toLowerCase().includes("solar") ||
+                    scen.is_renewable;
+                  return (
+                    <option key={scen.name} value={scen.name} className="bg-[#160d26] text-white">
+                      {isScenarioE ? `${scen.name} (★ NEW / RENEWABLE)` : scen.name}
+                    </option>
+                  );
+                })}
               </select>
               <ChevronDown className="w-3.5 h-3.5 text-purple-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
             </div>
           </div>
+
+          {/* Interactive Solar Microgrid Toggle Switch */}
+          {onToggleSolar !== undefined && (
+            <div className={`flex items-center justify-between px-3 py-2 rounded-2xl bg-[#140b22] border transition-all shadow-inner ${
+              solarEnabled 
+                ? "border-amber-500/40 shadow-[0_0_16px_rgba(245,158,11,0.12)]" 
+                : "border-purple-500/25 hover:border-purple-500/40"
+            }`}>
+              <div className="flex items-center gap-2">
+                <div
+                  className={`w-7 h-7 rounded-xl flex items-center justify-center border transition-all ${
+                    solarEnabled
+                      ? "bg-amber-500/20 text-amber-300 border-amber-500/40 shadow-[0_0_10px_rgba(245,158,11,0.3)]"
+                      : "bg-purple-950/40 text-purple-400/60 border-purple-500/20"
+                  }`}
+                >
+                  <Sun className={`w-3.5 h-3.5 ${solarEnabled ? "animate-[spin_12s_linear_infinite]" : ""}`} />
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-[11px] font-bold text-white tracking-tight flex items-center gap-1.5">
+                    Solar Microgrid
+                    {solarEnabled && (
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shadow-[0_0_6px_rgba(245,158,11,0.8)]" />
+                    )}
+                  </span>
+                  <span className="text-[9px] text-purple-300/60 font-mono">
+                    {solarEnabled ? "PV Curve Active" : "Grid Only"}
+                  </span>
+                </div>
+              </div>
+
+              {/* Apple-Grade Spring Physics Toggle Switch */}
+              <motion.button
+                type="button"
+                whileTap={{ scale: 0.95 }}
+                onClick={() => onToggleSolar(!solarEnabled)}
+                disabled={isRunning}
+                className={`relative inline-flex h-7 w-12 shrink-0 cursor-pointer items-center rounded-full p-0.5 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-amber-500/50 disabled:opacity-50 select-none ${
+                  solarEnabled
+                    ? "bg-gradient-to-r from-amber-500 to-emerald-500 shadow-[0_0_14px_rgba(245,158,11,0.45)] border border-amber-300/40"
+                    : "bg-slate-800/80 border border-slate-700/60 shadow-inner"
+                }`}
+                title={solarEnabled ? "Disable Solar PV generation" : "Enable Solar PV generation"}
+                aria-label="Toggle Solar Microgrid"
+              >
+                {/* Fluid Knob with Dynamic Spring Physics */}
+                <motion.div
+                  animate={{ x: solarEnabled ? 20 : 0 }}
+                  transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                  className="h-6 w-6 rounded-full bg-white shadow-[0_2px_8px_rgba(0,0,0,0.35)] flex items-center justify-center shrink-0"
+                >
+                  <motion.div
+                    animate={{ rotate: solarEnabled ? 180 : 0 }}
+                    transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                    className="flex items-center justify-center"
+                  >
+                    {solarEnabled ? (
+                      <Sun className="h-3.5 w-3.5 text-amber-500 drop-shadow-[0_0_4px_rgba(245,158,11,0.8)] fill-amber-500/30" />
+                    ) : (
+                      <Moon className="h-3.5 w-3.5 text-slate-500" />
+                    )}
+                  </motion.div>
+                </motion.div>
+              </motion.button>
+            </div>
+          )}
 
           {/* Run Simulation Action Button */}
           <motion.button

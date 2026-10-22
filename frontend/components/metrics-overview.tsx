@@ -10,12 +10,17 @@ import {
   Car,
   CheckCircle2,
   Clock,
+  DollarSign,
   Gauge,
+  Leaf,
   Sparkles,
+  Sun,
+  Trees,
+  TrendingDown,
   Zap,
 } from "lucide-react";
 import { SimulationMetrics } from "@/lib/types";
-import { formatKwh, formatKw, formatMin, formatPct } from "@/lib/utils";
+import { formatKg, formatKwh, formatKw, formatMin, formatPct, formatUsd } from "@/lib/utils";
 
 interface MetricsOverviewProps {
   fcfsMetrics: SimulationMetrics;
@@ -293,6 +298,283 @@ export function MetricsOverview({
           </div>
         </motion.div>
       )}
+
+      {/* Renewable Intelligence & ESG Bento Grid Section */}
+      <div className="space-y-2.5">
+        <div className="flex items-center justify-between px-1">
+          <div className="flex items-center gap-2">
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.9)]" />
+            </span>
+            <h4 className="text-xs font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
+              Renewable Intelligence & ESG Analytics
+              <span className="px-1.5 py-0.2 rounded-full text-[9px] font-mono bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+                Phase 9
+              </span>
+            </h4>
+          </div>
+          <span className="text-[11px] font-mono text-purple-300/60 hidden sm:inline">
+            Solar PV Microgrid &amp; Time-of-Use Accounting
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+          {/* Card 1: Clean Energy Ratio */}
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.05 }}
+            whileHover={{ scale: 1.02, y: -2 }}
+            className="relative overflow-hidden rounded-3xl border border-emerald-500/25 bg-[#121c22]/85 backdrop-blur-2xl p-5 shadow-[0_10px_30px_rgba(0,0,0,0.45)] hover:border-emerald-500/50 hover:shadow-[0_0_24px_rgba(16,185,129,0.2)] transition-all group"
+          >
+            <div className="absolute top-0 inset-x-0 h-[1.5px] bg-gradient-to-r from-transparent via-emerald-400/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+            <div className="flex items-center justify-between gap-3 mb-3">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl flex items-center justify-center border shadow-inner bg-emerald-500/15 text-emerald-400 border-emerald-500/25">
+                  <Sun className="w-4 h-4" />
+                </div>
+                <span className="text-xs font-semibold uppercase tracking-wider text-emerald-300/90">
+                  Clean Energy Ratio
+                </span>
+              </div>
+              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/35 shadow-[0_0_8px_rgba(16,185,129,0.25)]">
+                {formatPct(selectedPolicyView === "fcfs" ? fcfsMetrics.renewable_fraction_pct : lsfMetrics.renewable_fraction_pct)}
+              </span>
+            </div>
+
+            <div className="flex items-center justify-between pt-1">
+              {selectedPolicyView === "split" ? (
+                <div className="grid grid-cols-2 gap-3 w-full">
+                  <div className="space-y-0.5">
+                    <span className="text-[11px] font-medium text-purple-400/60 uppercase tracking-wider">
+                      FCFS
+                    </span>
+                    <div className="text-xl sm:text-2xl font-bold tracking-tight text-emerald-300/80 font-mono">
+                      <AnimatedNumber value={fcfsMetrics.renewable_fraction_pct ?? 0} formatter={formatPct} />
+                    </div>
+                  </div>
+                  <div className="space-y-0.5 border-l border-emerald-500/20 pl-3">
+                    <span className="text-[11px] font-bold text-emerald-400 uppercase tracking-wider">
+                      LSF
+                    </span>
+                    <div className="text-xl sm:text-2xl font-bold tracking-tight text-white font-mono">
+                      <AnimatedNumber value={lsfMetrics.renewable_fraction_pct ?? 0} formatter={formatPct} />
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-1 w-full">
+                  <span className="text-[11px] font-medium text-emerald-400/70 uppercase tracking-wider">
+                    {selectedPolicyView === "fcfs" ? "FCFS Green Share" : "LSF Green Share"}
+                  </span>
+                  <div className="text-2xl sm:text-3xl font-bold tracking-tight text-white font-mono">
+                    <AnimatedNumber
+                      value={selectedPolicyView === "fcfs" ? fcfsMetrics.renewable_fraction_pct ?? 0 : lsfMetrics.renewable_fraction_pct ?? 0}
+                      formatter={formatPct}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Circular SVG Progress Ring */}
+              <div className="relative w-12 h-12 shrink-0 flex items-center justify-center">
+                <svg className="w-12 h-12 -rotate-90">
+                  <circle
+                    cx="24"
+                    cy="24"
+                    r="18"
+                    stroke="rgba(16, 185, 129, 0.15)"
+                    strokeWidth="3.5"
+                    fill="none"
+                  />
+                  <circle
+                    cx="24"
+                    cy="24"
+                    r="18"
+                    stroke="#10b981"
+                    strokeWidth="3.5"
+                    strokeDasharray={113.1}
+                    strokeDashoffset={
+                      113.1 *
+                      (1 -
+                        Math.min(
+                          100,
+                          Math.max(
+                            0,
+                            selectedPolicyView === "fcfs"
+                              ? fcfsMetrics.renewable_fraction_pct ?? 0
+                              : lsfMetrics.renewable_fraction_pct ?? 0
+                          )
+                        ) /
+                          100)
+                    }
+                    strokeLinecap="round"
+                    fill="none"
+                    className="transition-all duration-1000 ease-out"
+                  />
+                </svg>
+                <span className="absolute text-[10px] font-bold font-mono text-emerald-300">
+                  {Math.round(
+                    selectedPolicyView === "fcfs"
+                      ? fcfsMetrics.renewable_fraction_pct ?? 0
+                      : lsfMetrics.renewable_fraction_pct ?? 0
+                  )}%
+                </span>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Card 2: Solar vs Grid Energy Mix */}
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.1 }}
+            whileHover={{ scale: 1.02, y: -2 }}
+            className="relative overflow-hidden rounded-3xl border border-amber-500/25 bg-[#1c151e]/85 backdrop-blur-2xl p-5 shadow-[0_10px_30px_rgba(0,0,0,0.45)] hover:border-amber-500/50 hover:shadow-[0_0_24px_rgba(245,158,11,0.2)] transition-all group"
+          >
+            <div className="absolute top-0 inset-x-0 h-[1.5px] bg-gradient-to-r from-transparent via-amber-400/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+            <div className="flex items-center justify-between gap-3 mb-2">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl flex items-center justify-center border shadow-inner bg-amber-500/15 text-amber-400 border-amber-500/25">
+                  <BatteryCharging className="w-4 h-4" />
+                </div>
+                <span className="text-xs font-semibold uppercase tracking-wider text-amber-300/90">
+                  Solar vs Grid Mix
+                </span>
+              </div>
+              <span className="text-[11px] font-mono text-amber-300 font-bold">
+                {formatKwh(
+                  (selectedPolicyView === "fcfs" ? fcfsMetrics.solar_energy_kwh ?? 0 : lsfMetrics.solar_energy_kwh ?? 0)
+                )} Solar
+              </span>
+            </div>
+
+            {/* Comparative Dual Progress Bar */}
+            <div className="space-y-2 pt-1">
+              {(() => {
+                const sKwh = selectedPolicyView === "fcfs" ? fcfsMetrics.solar_energy_kwh ?? 0 : lsfMetrics.solar_energy_kwh ?? 0;
+                const gKwh = selectedPolicyView === "fcfs" ? fcfsMetrics.grid_energy_kwh ?? 0 : lsfMetrics.grid_energy_kwh ?? 0;
+                const total = sKwh + gKwh;
+                const solarShare = total > 0 ? (sKwh / total) * 100 : 0;
+                return (
+                  <>
+                    <div className="w-full h-2 rounded-full bg-purple-950/60 overflow-hidden flex border border-purple-500/20 shadow-inner">
+                      <div
+                        style={{ width: `${solarShare}%` }}
+                        className="h-full bg-gradient-to-r from-amber-400 to-emerald-400 shadow-[0_0_8px_rgba(245,158,11,0.6)] transition-all duration-700"
+                        title={`Solar: ${sKwh.toFixed(1)} kWh (${solarShare.toFixed(1)}%)`}
+                      />
+                      <div
+                        style={{ width: `${100 - solarShare}%` }}
+                        className="h-full bg-gradient-to-r from-cyan-500 to-purple-600 transition-all duration-700"
+                        title={`Grid: ${gKwh.toFixed(1)} kWh (${(100 - solarShare).toFixed(1)}%)`}
+                      />
+                    </div>
+                    <div className="flex items-center justify-between text-[11px] font-mono">
+                      <span className="text-amber-300 flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                        {sKwh.toFixed(1)} kWh Solar
+                      </span>
+                      <span className="text-cyan-300 flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
+                        {gKwh.toFixed(1)} kWh Grid
+                      </span>
+                    </div>
+                  </>
+                );
+              })()}
+            </div>
+          </motion.div>
+
+          {/* Card 3: Electricity Cost & Savings */}
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.15 }}
+            whileHover={{ scale: 1.02, y: -2 }}
+            className="relative overflow-hidden rounded-3xl border border-fuchsia-500/25 bg-[#180d24]/85 backdrop-blur-2xl p-5 shadow-[0_10px_30px_rgba(0,0,0,0.45)] hover:border-fuchsia-500/50 hover:shadow-[0_0_24px_rgba(217,70,239,0.2)] transition-all group"
+          >
+            <div className="absolute top-0 inset-x-0 h-[1.5px] bg-gradient-to-r from-transparent via-fuchsia-400/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+            <div className="flex items-center justify-between gap-3 mb-2">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl flex items-center justify-center border shadow-inner bg-fuchsia-500/15 text-fuchsia-400 border-fuchsia-500/25">
+                  <DollarSign className="w-4 h-4" />
+                </div>
+                <span className="text-xs font-semibold uppercase tracking-wider text-fuchsia-300/90">
+                  Cost &amp; Savings
+                </span>
+              </div>
+              <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+                <TrendingDown className="w-3 h-3 text-emerald-400" />
+                Saved {formatUsd(selectedPolicyView === "fcfs" ? fcfsMetrics.cost_saved_usd : lsfMetrics.cost_saved_usd)}
+              </span>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2 pt-1">
+              <div>
+                <span className="text-[10px] font-medium text-purple-400/70 uppercase tracking-wider block">
+                  Net Grid Cost
+                </span>
+                <span className="text-xl sm:text-2xl font-bold font-mono text-white">
+                  {formatUsd(selectedPolicyView === "fcfs" ? fcfsMetrics.total_cost_usd : lsfMetrics.total_cost_usd)}
+                </span>
+              </div>
+              <div className="border-l border-purple-500/20 pl-3">
+                <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider block">
+                  Solar Savings
+                </span>
+                <span className="text-xl sm:text-2xl font-bold font-mono text-emerald-300 drop-shadow-[0_0_8px_rgba(52,211,153,0.4)]">
+                  {formatUsd(selectedPolicyView === "fcfs" ? fcfsMetrics.cost_saved_usd : lsfMetrics.cost_saved_usd)}
+                </span>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Card 4: Decarbonization Offset */}
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.2 }}
+            whileHover={{ scale: 1.02, y: -2 }}
+            className="relative overflow-hidden rounded-3xl border border-teal-500/25 bg-[#0e1b20]/85 backdrop-blur-2xl p-5 shadow-[0_10px_30px_rgba(0,0,0,0.45)] hover:border-teal-500/50 hover:shadow-[0_0_24px_rgba(20,184,166,0.2)] transition-all group"
+          >
+            <div className="absolute top-0 inset-x-0 h-[1.5px] bg-gradient-to-r from-transparent via-teal-400/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+            <div className="flex items-center justify-between gap-3 mb-2">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl flex items-center justify-center border shadow-inner bg-teal-500/15 text-teal-400 border-teal-500/25">
+                  <Leaf className="w-4 h-4 text-emerald-400" />
+                </div>
+                <span className="text-xs font-semibold uppercase tracking-wider text-teal-300/90">
+                  Carbon Offset (ESG)
+                </span>
+              </div>
+              <span
+                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-teal-500/20 text-teal-300 border border-teal-500/30"
+                title="Calculated using US EPA standard of ~20 kg CO2 absorbed per tree seedling grown for 10 years"
+              >
+                <Trees className="w-3 h-3 text-emerald-400" />
+                ~{(
+                  ((selectedPolicyView === "fcfs" ? fcfsMetrics.co2_avoided_kg ?? 0 : lsfMetrics.co2_avoided_kg ?? 0) / 20.0)
+                ).toFixed(1)} trees eq.
+              </span>
+            </div>
+
+            <div className="pt-1">
+              <span className="text-[10px] font-medium text-teal-300/70 uppercase tracking-wider block">
+                Avoided Grid Emissions (0.70 kg/kWh)
+              </span>
+              <div className="text-2xl sm:text-3xl font-bold tracking-tight text-emerald-300 font-mono flex items-baseline gap-1.5 drop-shadow-[0_0_8px_rgba(52,211,153,0.35)]">
+                <AnimatedNumber
+                  value={selectedPolicyView === "fcfs" ? fcfsMetrics.co2_avoided_kg ?? 0 : lsfMetrics.co2_avoided_kg ?? 0}
+                  formatter={formatKg}
+                />
+                <span className="text-xs font-normal text-teal-400/70 font-sans">CO₂e avoided</span>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </div>
 
       {/* Grid of Key Performance Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">

@@ -43,6 +43,8 @@ export interface StationConfig {
   currently_available_power_kw: number;
   charging_efficiency: number;
   points: ChargingPoint[];
+  solar_capacity_kw?: number;
+  grid_connection_limit_kw?: number;
 }
 
 export interface DynamicEvent {
@@ -63,6 +65,14 @@ export interface EventRecord {
   new_state: string | null;
   reason: string;
   power_after_kw: number;
+  solar_power_kw?: number | null;
+  grid_power_kw?: number | null;
+  solar_energy_kwh?: number | null;
+  grid_energy_kwh?: number | null;
+  tariff_rate?: number | null;
+  cost_usd?: number | null;
+  cost_saved_usd?: number | null;
+  co2_avoided_kg?: number | null;
 }
 
 export interface SimulationMetrics {
@@ -78,6 +88,14 @@ export interface SimulationMetrics {
   unserved_energy_kwh: number;
   deadline_misses: number;
   infeasible_requests: number;
+
+  // Phase 8 & 9 Renewable & ESG Metrics
+  solar_energy_kwh: number;
+  grid_energy_kwh: number;
+  renewable_fraction_pct: number;
+  total_cost_usd: number;
+  cost_saved_usd: number;
+  co2_avoided_kg: number;
 }
 
 export interface PolicyResult {
@@ -90,11 +108,13 @@ export interface ComparisonResponse {
   scenario_name: string;
   fcfs: PolicyResult;
   lsf: PolicyResult;
+  solar_enabled?: boolean;
 }
 
 export interface ScenarioSummary {
   name: string;
   description: string;
+  is_renewable?: boolean;
 }
 
 export interface ScenarioDetailResponse {
@@ -110,6 +130,7 @@ export interface ScenarioRunRequest {
   vehicles: VehicleRequest[];
   events?: DynamicEvent[];
   simulation_minutes?: number;
+  solar_enabled?: boolean;
 }
 
 export interface PowerTimelinePoint {
@@ -118,4 +139,9 @@ export interface PowerTimelinePoint {
   lsfPower: number;
   availableCapacity: number;
   totalCapacity: number;
+  solarPower?: number;
+  gridPower?: number;
+  solarAvailable?: number;
+  activeTariff?: number;
+  tariffTier?: "Off-Peak" | "Standard" | "Peak";
 }

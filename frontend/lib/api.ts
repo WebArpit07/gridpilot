@@ -81,18 +81,42 @@ export async function checkHealth(): Promise<{ status: string; timestamp: number
   }
 }
 
+export const SCENARIO_E_SUMMARY: ScenarioSummary = {
+  name: "Scenario E",
+  description: "4 points (22kW each), 25kW solar array + 30kW grid connection. 8 EVs absorbing peak midday solar.",
+  is_renewable: true,
+};
+
 /**
- * Returns the names and descriptions of predefined benchmark scenarios (A, B, C, D).
+ * Returns the names and descriptions of predefined benchmark scenarios (A, B, C, D, E).
  */
 export async function fetchScenarios(): Promise<ScenarioSummary[]> {
-  const res = await fetchWithFallback("/api/scenarios", {
-    method: "GET",
-    headers: { "Content-Type": "application/json" },
-  });
-  if (!res.ok) {
-    throw new Error(`Failed to fetch scenarios: HTTP ${res.status}`);
+  try {
+    const res = await fetchWithFallback("/api/scenarios", {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+    });
+    if (!res.ok) {
+      throw new Error(`Failed to fetch scenarios: HTTP ${res.status}`);
+    }
+    const list: ScenarioSummary[] = await res.json();
+    const hasScenarioE = list.some(
+      (s) => s.name.toLowerCase().includes("scenario e") || s.name.toLowerCase().includes("solar")
+    );
+    if (!hasScenarioE) {
+      list.push(SCENARIO_E_SUMMARY);
+    }
+    return list;
+  } catch {
+    // If backend endpoint is temporarily offline, return standard benchmark scenarios including Scenario E
+    return [
+      { name: "Scenario A", description: "4 points (11kW each), 40kW station. 8 vehicles arriving at t=0 with tight deadlines." },
+      { name: "Scenario B", description: "4 points. Mix of long-dwell low-power vehicles and short-dwell high-power vehicles arriving at different times." },
+      { name: "Scenario C", description: "4 points. Station drops from 80kW to 30kW at t=30." },
+      { name: "Scenario D", description: "Includes a request with mathematically impossible deadlines (slack < 0) and a simulated point failure." },
+      SCENARIO_E_SUMMARY,
+    ];
   }
-  return res.json();
 }
 
 /**

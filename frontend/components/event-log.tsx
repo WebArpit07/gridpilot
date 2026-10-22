@@ -13,6 +13,7 @@ import {
   LogOut,
   RefreshCw,
   Search,
+  Sun,
   Zap,
 } from "lucide-react";
 import { EventRecord } from "@/lib/types";
@@ -84,6 +85,11 @@ export function EventLog({
           icon: <RefreshCw className="w-3 h-3" />,
           bg: "bg-teal-500/15 text-teal-300 border-teal-500/30",
         };
+      case "renewabledispatch":
+        return {
+          icon: <Sun className="w-3 h-3 text-amber-400" />,
+          bg: "bg-emerald-500/15 text-emerald-300 border-emerald-500/35 shadow-[0_0_8px_rgba(16,185,129,0.25)]",
+        };
       case "failure":
         return {
           icon: <AlertOctagon className="w-3 h-3" />,
@@ -98,6 +104,9 @@ export function EventLog({
   };
 
   const getExplainabilityFormula = (record: EventRecord) => {
+    if (record.event_type.toLowerCase() === "renewabledispatch") {
+      return "Dynamic Green Dispatch: On-site Solar PV generation absorbs vehicle charging demand, avoiding grid tariffs and carbon emissions.";
+    }
     if (record.reason.toLowerCase().includes("slack")) {
       return "Least-Slack-First: Evaluates Slack_i(t) = D_i - t - (60·E_remaining)/(η·P_max). The vehicle with minimal positive slack is prioritized.";
     }
@@ -182,7 +191,7 @@ export function EventLog({
 
       {/* Filter Category Chips */}
       <div className="flex flex-wrap items-center gap-1.5 text-xs">
-        {["ALL", "Arrival", "AllocationUpdate", "CapacityChange", "Completion", "Departure", "Failure"].map(
+        {["ALL", "Arrival", "AllocationUpdate", "RenewableDispatch", "CapacityChange", "Completion", "Departure", "Failure"].map(
           (t) => {
             const isSelected = selectedType.toLowerCase() === t.toLowerCase();
             return (
@@ -203,6 +212,8 @@ export function EventLog({
                   ? "Allocation"
                   : t === "CapacityChange"
                   ? "Capacity Drop"
+                  : t === "RenewableDispatch"
+                  ? "Green Dispatch"
                   : t}
               </button>
             );
